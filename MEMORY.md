@@ -13,6 +13,10 @@
 
 ### XiuXianCards - 修仙卡牌游戏 (2026-02-10)
 
+**别名**: 大巴扎客户端
+
+**命名由来**: 战斗核心玩法借鉴海外游戏 **The Bazaar**（中文名"大巴扎"），一款卡牌构建+市场交易+Roguelike 的游戏
+
 **项目路径**: `E:\XiuXianCards\XiuXianCards`
 
 **项目类型**: Unity TCG (集换式卡牌游戏)
