@@ -118,12 +118,14 @@ public enum CardSize
 }
 ```
 
-#### Slot.cs
+#### Slot.cs (Simplified)
 
-**Coordinate System**:
-- `x`: 1-10 (slot position)
-- `y`: 1 (row, currently single row)
-- `p`: 0/1 (player ID)
+**Coordinate System** (2026-02-10 简化):
+- `x`: 1-10 (槽位位置)
+- ~~`y`: 已删除~~
+- ~~`p`: 已删除~~
+
+**简化说明**: Slot 结构已简化为只包含 x 坐标，y 和 p 字段已删除。后续玩家区分逻辑将在其他地方处理。
 
 **Key Methods**:
 ```csharp
