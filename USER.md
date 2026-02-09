@@ -2,15 +2,15 @@
 
 _Learn about the person you're helping. Update this as you go._
 
-- **Name:**
-- **What to call them:**
+- **Name:** JayHe
+- **What to call them:** Jay
 - **Pronouns:** _(optional)_
-- **Timezone:**
+- **Timezone:** utc+8
 - **Notes:**
 
 ## Context
 
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+JayHe是一名游戏程序员，使用unity和unreal，喜欢游戏编程，乐于探讨技术问题
 
 ---
 

@@ -252,21 +252,173 @@ void Update()
 }
 ```
 
-### Algorithm: TryGetPushSlots
+### Correct Implementation (Fixed Version)
+
+**⚠️ Important**: The first implementation had a critical bug. Here's the correct version:
 
 ```csharp
-private bool TryGetPushSlots(Card movingCard, Slot targetSlot, 
-    int cardSize, bool pushLeft, List<Card> cardsToPush, List<Slot> targetSlots)
+public virtual void MoveCard(Card card, Slot slot, float mouseOffsetX = 0f, SlotType slotType = SlotType.CardStorage)
 {
-    int direction = pushLeft ? -1 : 1;
-    int checkX = pushLeft ? targetSlot.x - 1 : targetSlot.x + 1;
-    int emptyNeeded = cardSize;
-    int emptyFound = 0;
+    if (card == null || !slot.IsValid())
+        return;
+
+    // 1. Get card size (1/2/3 slots)
+    int cardSize = GetCardSize(card);
     
-    while (emptyFound < emptyNeeded)
+    // 2. Determine push direction
+    bool pushLeft = mouseOffsetX >= 0;
+    int direction = pushLeft ? -1 : 1;
+    
+    // 3. Check if target slot and subsequent slots are available
+    // For Big cards (3 slots), need to check slot, slot+1, slot+2
+    bool canPlaceDirectly = true;
+    List<Card> blockingCards = new List<Card>();
+    
+    for (int i = 0; i < cardSize; i++)
     {
+        int checkX = slot.x + (i * direction);
+        
+        // Boundary check
         if (checkX < Slot.x_min || checkX > Slot.x_max)
-            return false; // Boundary
+        {
+            canPlaceDirectly = false;
+            break;
+        }
+        
+        Slot checkSlot = new Slot(checkX, slot.y, slot.p);
+        Card cardAtSlot = game_data.GetSlotCard(checkSlot);
+        
+        if (cardAtSlot != null && cardAtSlot.uid != card.uid)
+        {
+            canPlaceDirectly = false;
+            blockingCards.Add(cardAtSlot);
+        }
+    }
+    
+    // 4. If all slots empty, place directly
+    if (canPlaceDirectly && blockingCards.Count == 0)
+    {
+        card.slot = slot;
+        RefreshData();
+        onCardMoved?.Invoke(card, slot);
+        return;
+    }
+    
+    // 5. Need to push - find enough empty slots
+    int emptySlotsNeeded = cardSize;
+    int emptySlotsFound = 0;
+    int checkX = slot.x + (cardSize * direction);
+    HashSet<Card> cardsToPushSet = new HashSet<Card>(blockingCards);
+    
+    while (checkX >= Slot.x_min && checkX <= Slot.x_max)
+    {
+        Slot checkSlot = new Slot(checkX, slot.y, slot.p);
+        Card cardAtSlot = game_data.GetSlotCard(checkSlot);
+        
+        if (cardAtSlot == null)
+        {
+            emptySlotsFound++;
+            if (emptySlotsFound >= emptySlotsNeeded)
+                break;
+        }
+        else if (cardAtSlot.uid != card.uid)
+        {
+            cardsToPushSet.Add(cardAtSlot);
+        }
+        
+        checkX += direction;
+    }
+    
+    // 6. Not enough space
+    if (emptySlotsFound < emptySlotsNeeded)
+        return;
+    
+    // 7. Push cards outward by cardSize positions
+    List<Card> cardsToPush = new List<Card>(cardsToPushSet);
+    cardsToPush.Sort((a, b) => pushLeft ? b.slot.x.CompareTo(a.slot.x) : a.slot.x.CompareTo(b.slot.x));
+    
+    for (int i = cardsToPush.Count - 1; i >= 0; i--)
+    {
+        Card cardToPush = cardsToPush[i];
+        int targetX = pushLeft ? cardToPush.slot.x - cardSize : cardToPush.slot.x + cardSize;
+        
+        if (targetX < Slot.x_min || targetX > Slot.x_max)
+            return; // Out of bounds
+        
+        cardToPush.slot = new Slot(targetX, slot.y, slot.p);
+    }
+    
+    // 8. Place moving card
+    card.slot = slot;
+    RefreshData();
+    onCardMoved?.Invoke(card, slot);
+}
+```
+
+### Development Lessons Learned
+
+#### Bug #1: Cards Not Actually Moving
+**Problem**: Formula calculated target position as the card's current position
+```csharp
+// WRONG
+targetX = targetSlot.x - emptySlotsNeeded - i;  // Card at 2 -> target 2
+```
+
+**Fix**: Calculate based on card's current position, not target slot
+```csharp
+// CORRECT
+targetX = cardToPush.slot.x - cardSize;  // Card at 2 -> target 2-cardSize
+```
+
+#### Bug #2: Not Checking Card Size for Empty Slots
+**Problem**: Only checked if target slot was empty, ignored Large cards need 3 slots
+```csharp
+// WRONG
+if (existingCard == null) {
+    card.slot = slot;  // Large card needs 3 slots!
+    return;
+}
+```
+
+**Fix**: Check all required slots
+```csharp
+// CORRECT
+for (int i = 0; i < cardSize; i++) {
+    int checkX = slot.x + (i * direction);
+    // Check this slot...
+}
+```
+
+#### Bug #3: Wrong Search Direction
+**Problem**: Started searching from wrong position, leading to incorrect push chain
+
+**Fix**: Always search from the "far end" of where the card will expand
+
+### Network Synchronization Flow
+
+```
+GameLogic.MoveCard()
+    ↓
+RefreshData() → onRefresh?.Invoke()
+onCardMoved?.Invoke(card, slot)
+    ↓
+GameServer (subscribed to events)
+    ↓
+OnCardMoved() → SendToAll(GameAction.CardMoved)
+RefreshAll() → SendToAll(GameAction.RefreshAll)
+    ↓
+All Clients receive update
+    ↓
+BoardCard.OnMove() → Update position
+```
+
+**Key Points**:
+- Server is authoritative - all calculations happen server-side
+- Client sends: card_uid, target_slot, mouse_offset
+- Server broadcasts: final positions to all clients
+- Client has 0.5s timeout - if no update, bounce back to original position
+
+### Old Algorithm (Deprecated)
         
         Slot checkSlot = new Slot(checkX, targetSlot.y, targetSlot.p);
         Card existing = game_data.GetSlotCard(checkSlot);
