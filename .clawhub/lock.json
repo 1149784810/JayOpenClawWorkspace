@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "skills": {
+    "sonoscli": {
+      "version": "1.0.0",
+      "installedAt": 1770665314976
+    },
+    "agent-browser": {
+      "version": "0.2.0",
+      "installedAt": 1770665471386
+    },
+    "toughcoding": {
+      "version": "1.0.2",
+      "installedAt": 1770666108769
+    },
+    "audit-code": {
+      "version": "1.0.0",
+      "installedAt": 1770666122196
+    },
+    "clean-code": {
+      "version": "1.0.0",
+      "installedAt": 1770666134972
+    },
+    "peer-reviewer": {
+      "version": "1.0.0",
+      "installedAt": 1770666148575
+    },
+    "opencode-controller": {
+      "version": "1.0.0",
+      "installedAt": 1770666159241
+    }
+  }
+}
