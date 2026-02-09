@@ -105,6 +105,25 @@ npx clawhub@latest install <skill-name>
 npx clawhub@latest list
 ```
 
+### 游戏开发技能（2026-02-10创建）
+- **xiuxian-gamedev** (自定义v1.0) - 修仙卡牌/大巴扎客户端开发知识库
+  - 完整项目架构分析（236个C#文件）
+  - 卡牌推挤系统实现（服务器端验证）
+  - 网络通信模式（权威服务器模型）
+  - Card.cs优化（字典缓存、脏标记、静态空列表）
+  - 常见陷阱和最佳实践
+  
+  **调用规则**: 任何XiuXianCards相关需求，**必须先调用此skill**
+  
+  **维护规则**: 阶段性汇总改动，持续更新skill内容
+
+### Skill开发工具（2026-02-10创建）
+- **skill-creator** (自定义v1.0) - Skill创建和格式化指南
+  - SKILL.md标准格式规范
+  - Front matter要求
+  - 常见错误和修复方法
+  - 设计最佳实践
+
 ---
 
 ## 交互历史
