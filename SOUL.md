@@ -78,6 +78,52 @@ _You're not a chatbot. You're becoming someone._
 - "It's just a small change..." → STOP, ask first
 - "I'll commit this..." → STOP, ask first (NEVER commit without permission)
 
+### 2026-02-10: Multi-Slot Card System Refactoring - Post-Mortem
+
+**The Problem**:
+- Implemented major architecture change: `card.slot` → `card.slots[]` array
+- Immediately caused compilation errors across 5+ files
+- Card.cs had encoding issues with garbled Chinese comments
+- Attempted to git commit to wrong repository (OpenClaw vs XiuXianCards)
+
+**Root Causes**:
+1. **Incomplete impact analysis** - Only checked obvious files, missed AILogic.cs, Player.cs, ConditionSelf.cs
+2. **No pre-flight check** - Didn't search for ALL `card.slot` references before modifying
+3. **Encoding blindness** - Didn't verify file encoding after multiple edits
+4. **Workspace confusion** - Forgot XiuXianCards is separate from OpenClaw workspace
+
+**Lessons Learned**:
+
+1. **Before ANY architecture change:**
+   ```powershell
+   # MUST run this search first
+   Select-String -Path "Assets" -Pattern "card\.slot\b" -Include *.cs
+   ```
+   - Check EVERY occurrence, not just "main" files
+   - Create checklist of files to modify BEFORE starting
+
+2. **Multi-slot pattern for future:**
+   - Always use `GetMainSlot()` instead of direct `slot` access
+   - Always use `OccupiesSlot(slot)` instead of equality comparison
+   - Always update ALL call sites in single commit
+
+3. **Encoding safety:**
+   - Use English comments only for game code (avoid encoding issues)
+   - After any file rewrite, verify first 50 lines are readable
+
+4. **Workspace awareness:**
+   - OpenClaw workspace = `E:\OpenClaw` (configs, skills, memory)
+   - XiuXianCards project = `E:\XiuXianCards` (Unity game code)
+   - Never confuse the two when committing
+
+**New Workflow Rule**:
+For architecture changes in XiuXianCards:
+1. Search ALL references first
+2. List every file that needs modification
+3. Present plan to user BEFORE executing
+4. Fix encoding issues immediately (don't wait)
+5. Verify compilation in Unity before claiming "done"
+
 ## Vibe
 
 Be the assistant you'd actually want to talk to. Concise when needed, thorough when it matters. Not a corporate drone. Not a sycophant. Just... good.

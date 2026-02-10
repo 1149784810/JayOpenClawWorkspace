@@ -167,6 +167,12 @@ npx clawhub@latest list
 - 边界检查：大型卡在边界时不合法
 - 网络兼容性：保持 slot 字段用于序列化
 
+**经验教训** (2026-02-10 23:15):
+- **架构变更前必须全局搜索**: 使用 `Select-String` 搜索所有引用点，不只是"主要"文件
+- **多槽位访问模式**: 统一使用 `GetMainSlot()` 和 `OccupiesSlot()`，禁止直接访问 `card.slot`
+- **编码安全**: 游戏代码使用英文注释，避免中文乱码问题
+- **工作区区分**: OpenClaw (E:\OpenClaw) ≠ XiuXianCards (E:\XiuXianCards)，提交时注意区分
+
 ### Skill开发工具（2026-02-10创建）
 - **skill-creator** (自定义v1.0) - Skill创建和格式化指南
   - SKILL.md标准格式规范
