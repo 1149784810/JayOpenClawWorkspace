@@ -901,7 +901,12 @@ When modifying a function, check:
   - Big card: center slot + neighbors
   - Boundary validation for all card sizes
   - Network compatibility maintained (slot field preserved)
-  - Files modified: Card.cs, Game.cs, GameLogic.cs, BoardCard.cs
+  - Files modified: Card.cs, Game.cs, GameLogic.cs, BoardCard.cs, Player.cs, AILogic.cs, ConditionSelf.cs
+- **Fixes (2026-02-10 23:00)**:
+  - Fixed all card.slot references to use GetMainSlot() or OccupiesSlot()
+  - Fixed Player.GetSlotCard() to use OccupiesSlot()
+  - Fixed AILogic equipment target slot checking
+  - Fixed ConditionSelf target slot comparison
 
 ### v1.0 (2026-02-10)
 - Initial skill creation
