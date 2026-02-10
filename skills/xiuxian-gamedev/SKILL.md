@@ -600,6 +600,16 @@ if (cardAtSlot.uid == movingCard.uid)
 > **Purpose**: Given a requirement (需求A), quickly locate files and functions to modify.  
 > **Rule**: When modifying functions, ensure backward compatibility for all call sites.
 
+### 🔄 Maintenance Principle (维护原则)
+
+**CRITICAL**: After each new understanding or requirement analysis:
+1. ✅ **Update the tree immediately** - Add new branches, files, functions
+2. ✅ **Be as detailed as possible** - More specific = better future lookup
+3. ✅ **Ensure complete coverage** - Every requirement should have a path
+4. ✅ **If cannot locate precisely** - Update tree after analysis ends
+
+**Never skip tree updates** - This is the foundation for efficient development!
+
 ### Tree Structure
 
 ```
