@@ -142,6 +142,11 @@ npx clawhub@latest list
 - 覆盖4种效果类型：加速、减速、伤害、回复
 - 包含战斗结束判定和循环CD机制
 
+**依赖树最新更新** (2026-02-10 20:15):
+- 添加 **Card Slot Initialization** 文档
+- 记录 card.slot 的4个初始化位置：Puzzle初始化、出牌、移动（直接放置）、移动（推挤后）
+- 记录默认状态：Card.Create() 时 slot = Slot.None
+
 ### Skill开发工具（2026-02-10创建）
 - **skill-creator** (自定义v1.0) - Skill创建和格式化指南
   - SKILL.md标准格式规范

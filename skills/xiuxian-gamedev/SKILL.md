@@ -679,6 +679,39 @@ if (cardAtSlot.uid == movingCard.uid)
 │       │   - CardData.Get()
 │       │   - Card.Get()
 │       │   - Card.Create()
+│       ├── Card Slot Initialization (card.slot 初始化位置):
+│       │   **Default State**: Card.Create() → slot = Slot.None (x=0, type=CardStorage)
+│       │   
+│       │   **1. Puzzle/Level Initialization** (GameLogic.cs:331):
+│       │   ```csharp
+│       │   foreach (DeckCardSlot card in puzzle.board_cards)
+│       │   {
+│       │       Card acard = Card.Create(card.card, variant, player);
+│       │       acard.slot = new Slot(card.slot.x, SlotType.CardStorage);
+│       │   }
+│       │   ```
+│       │   
+│       │   **2. Play Card to Board** (GameLogic.cs:382):
+│       │   ```csharp
+│       │   public virtual void PlayCard(Card card, Slot slot)
+│       │   {
+│       │       card.slot = slot;  // 出牌时设置槽位
+│       │   }
+│       │   ```
+│       │   
+│       │   **3. Move Card (Direct Place)** (GameLogic.cs:432):
+│       │   ```csharp
+│       │   if (canPlaceDirectly && blockingCards.Count == 0)
+│       │   {
+│       │       card.slot = slot;  // 移动时设置槽位
+│       │   }
+│       │   ```
+│       │   
+│       │   **4. Move Card (After Push)** (GameLogic.cs:512):
+│       │   ```csharp
+│       │   // 推动其他卡牌后，最后放置移动的卡牌
+│       │   card.slot = slot;  // 推挤后设置槽位
+│       │   ```
 │       ├── Impact: 
 │       │   - All card instantiation
 │       │   - Serialization
