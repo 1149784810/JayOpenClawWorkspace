@@ -625,6 +625,14 @@ if (cardAtSlot.uid == movingCard.uid)
 │   │   │   │                  not for the pushed cards
 │   │   │   │   **Fix**: Added onCardMoved?.Invoke(cardToPush, cardToPush.slot) 
 │   │   │   │            inside the push loop (GameLogic.cs)
+│   │   │   ├── BUG Fixed (2026-02-10 23:25):
+│   │   │   │   **Problem**: Push system not working after multi-slot refactor
+│   │   │   │   **Root Cause 1**: Push distance used cardSize instead of 1
+│   │   │   │   - Wrong: newMainX = mainSlot.x - cardSize
+│   │   │   │   - Correct: newMainX = mainSlot.x - 1
+│   │   │   │   **Root Cause 2**: Missing conflict detection between pushed cards
+│   │   │   │   - Added: HashSet<Slot> validation before push execution
+│   │   │   │   **Files**: GameLogic.cs TryPushCards() method
 │   │   │   ├── Medium Card Position (2026-02-10 22:36):
 │   │   │   │   **Requirement**: Medium card (2 slots) center position at center of 2 slots
 │   │   │   │   **Implementation**: BoardCard.CalculateCardPosition()
