@@ -631,10 +631,34 @@ if (cardAtSlot.uid == movingCard.uid)
 │   │   │   ├── Functions: CanAttackTarget(), AttackCard()
 │   │   │   └── Impact: Range check, Damage calculation
 │   │   │
-│   │   └── Ability System (技能系统)
-│   │       ├── Files: AbilityData.cs, Card.cs, GameLogic.cs
-│   │       ├── Functions: TriggerAbility(), CanCastAbility()
-│   │       └── Impact: Effect resolution, Target validation
+│   │   ├── Ability System (技能系统)
+│   │   │   ├── Files: AbilityData.cs, Card.cs, GameLogic.cs
+│   │   │   ├── Functions: TriggerAbility(), CanCastAbility()
+│   │   │   └── Impact: Effect resolution, Target validation
+│   │   │
+│   │   └── CD System (CD冷却系统) [2026-02-10新增]
+│   │       ├── Data Files: CardData.cs
+│   │       │   └── Fields: cooldown, cooldown_init, trigger_type, trigger_value, loop_cd
+│   │       ├── State Files: Card.cs
+│   │       │   └── Fields: current_cd, cd_active
+│   │       │   └── Methods: StartCD(), DecreaseCD(), OnCDComplete(), ResetCD()
+│   │       ├── Logic Files: GameLogic.cs
+│   │       │   ├── Methods: 
+│   │       │   │   - InitializeCardCDs() [战斗开始初始化]
+│   │       │   │   - ProcessCardCDs() [每回合CD处理]
+│   │       │   │   - ExecuteCDEffect() [CD效果执行 - 核心]
+│   │       │   │   - GetLeftNeighbor(), GetRightNeighbor() [获取相邻卡牌]
+│   │       │   │   - CheckBattleEnd() [检查战斗结束]
+│   │       │   └── Trigger Effects:
+│   │       │       - Accelerate: 加速相邻卡牌CD
+│   │       │       - Slow: 减速敌方卡牌CD
+│   │       │       - Damage: 对敌方造成伤害
+│   │       │       - Heal: 对己方回复生命
+│   │       ├── Network Files: NetworkMsg.cs, GameServer.cs, GameClient.cs
+│   │       │   ├── Messages: MsgCDUpdate, MsgCDEffect
+│   │       │   └── Events: CD数值变化广播, CD效果触发广播
+│   │       └── UI Files: BoardCard.cs
+│   │           └── Methods: ShowCDIndicator(), PlayCDEffectAnimation()
 │   │
 │   ├── Slot System (槽位系统)
 │   │   ├── Files: Slot.cs, BoardSlot.cs
@@ -744,6 +768,43 @@ if (cardAtSlot.uid == movingCard.uid)
 4. Update GameClient.cs for UI feedback
 5. Add to GameServer.cs for server validation
 6. Test network sync with RefreshData()
+```
+
+#### If adding CD System (CD冷却系统)
+```
+1. Data Definition (CardData.cs):
+   ✓ Add: cooldown, cooldown_init, trigger_type, trigger_value, loop_cd
+
+2. State Management (Card.cs):
+   ✓ Add fields: current_cd, cd_active
+   ✓ Add methods: StartCD(), DecreaseCD(), OnCDComplete(), ResetCD()
+
+3. Core Logic (GameLogic.cs):
+   ✓ Add InitializeCardCDs() - Call at battle start
+   ✓ Add ProcessCardCDs() - Call at end of each turn
+   ✓ Add ExecuteCDEffect() - Handle 4 effect types
+   ✓ Add GetLeftNeighbor(), GetRightNeighbor() - For adjacent cards
+   ✓ Add CheckBattleEnd() - Check HP <= 0
+
+4. Network Layer:
+   ✓ Add MsgCDUpdate (NetworkMsg.cs) - Sync CD value
+   ✓ Add MsgCDEffect (NetworkMsg.cs) - Broadcast effect trigger
+   ✓ Update GameServer.cs - Validate CD logic
+   ✓ Update GameClient.cs - Handle CD messages
+
+5. UI Layer (BoardCard.cs):
+   ✓ Add ShowCDIndicator() - Display CD number
+   ✓ Add PlayCDEffectAnimation() - Visual feedback
+
+6. Effect Types to Implement:
+   ✓ Accelerate: Reduce adjacent cards CD
+   ✓ Slow: Increase enemy cards CD
+   ✓ Damage: Deal damage to opponent player
+   ✓ Heal: Restore HP to friendly player
+
+7. Battle End Condition:
+   ✓ Check after Damage effect: if HP <= 0, end battle
+   ✓ Loop CD if loop_cd=true until battle ends
 ```
 
 #### If modifying Network Messages
