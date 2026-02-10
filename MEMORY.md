@@ -147,6 +147,12 @@ npx clawhub@latest list
 - 记录 card.slot 的4个初始化位置：Puzzle初始化、出牌、移动（直接放置）、移动（推挤后）
 - 记录默认状态：Card.Create() 时 slot = Slot.None
 
+**依赖树最新更新** (2026-02-10 22:19):
+- 添加 **Push System BUG修复** 记录
+- 问题：被推挤卡牌客户端位置不更新
+- 原因：服务器只为移动的卡牌触发onCardMoved，未为被推挤卡牌触发
+- 修复：在推挤循环中添加onCardMoved事件触发
+
 ### Skill开发工具（2026-02-10创建）
 - **skill-creator** (自定义v1.0) - Skill创建和格式化指南
   - SKILL.md标准格式规范

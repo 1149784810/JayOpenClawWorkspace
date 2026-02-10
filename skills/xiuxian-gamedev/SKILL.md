@@ -619,6 +619,12 @@ if (cardAtSlot.uid == movingCard.uid)
 │   │   ├── Push System (推挤系统)
 │   │   │   ├── Files: GameLogic.cs, GameClient.cs, GameServer.cs
 │   │   │   ├── Functions: MoveCard(), TryGetPushSlots()
+│   │   │   ├── BUG Fixed (2026-02-10 22:19):
+│   │   │   │   **Problem**: Pushed cards not updating position on client
+│   │   │   │   **Root Cause**: Server only triggered onCardMoved for the moved card,
+│   │   │   │                  not for the pushed cards
+│   │   │   │   **Fix**: Added onCardMoved?.Invoke(cardToPush, cardToPush.slot) 
+│   │   │   │            inside the push loop (GameLogic.cs)
 │   │   │   └── Impact: Slot.cs equality operators, Network serialization
 │   │   │
 │   │   ├── Card Play (出牌)
