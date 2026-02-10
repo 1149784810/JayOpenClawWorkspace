@@ -12,6 +12,47 @@
 
 ## 项目记忆
 
+### ⚠️ 项目区分说明
+
+用户有两个完全不同的修仙游戏项目，**严禁混淆**:
+
+| 项目 | 技术栈 | 类型 | 路径 |
+|------|--------|------|------|
+| **修仙大巴扎 (XiuXianCards)** | Unity (C#) | 卡牌对战/联机 | `E:\XiuXianCards` |
+| **修仙挂机 (XiuXianIdle)** | HTML/JS | 放置/单机 | `E:\OpenClaw\TempWork` |
+
+---
+
+### XiuXianIdle - 修仙挂机游戏 (2026-02-11)
+
+**别名**: 问道长生
+
+**项目路径**: `E:\OpenClaw\TempWork\xiuxian-idle-game.html`
+
+**项目类型**: Web端放置修仙游戏
+
+**核心玩法**:
+- 自动修炼 (离线收益)
+- CD自动战斗 (主角和敌人各自读CD)
+- 装备锻造系统 (白/蓝/紫/橙品质)
+- 丹药系统 (战斗/副本掉落，可回复生命或增加修为)
+- 功法升级系统
+
+**技术栈**:
+- HTML5 + CSS3 + Vanilla JavaScript
+- localStorage 存档
+- 导出/导入代码备份
+
+**核心系统**:
+- **修为系统**: 大境界100倍增长 (炼气→筑基→金丹...)
+- **战斗系统**: CD机制，每2秒攻击一次
+- **装备系统**: 50格背包，可锻造/出售
+- **丹药系统**: 战斗中可使用
+
+**Skill文件**: `skills/xiuxian-idle/SKILL.md`
+
+---
+
 ### XiuXianCards - 修仙卡牌游戏 (2026-02-10)
 
 **别名**: 大巴扎客户端
@@ -94,7 +135,9 @@
   - 新浪财经数据 (`sina_sectors.py` - 无需Token)
   - 需要: Tushare API Token (免费申请)
 
-### Skill 安装方法
+### Skill 管理
+
+**安装现有 skill**:
 ```bash
 # 搜索skill
 npx clawhub@latest search <keyword>
@@ -106,8 +149,53 @@ npx clawhub@latest install <skill-name>
 npx clawhub@latest list
 ```
 
-### 游戏开发技能（2026-02-10创建）
-- **xiuxian-gamedev** (自定义v1.0) - 修仙卡牌/大巴扎客户端开发知识库
+**创建新 skill - 强制流程**:
+1. **必须先调用** `read E:\OpenClaw\skills\skill-creator\SKILL.md`
+2. 严格按照模板创建：
+   ```
+   ---
+   name: skill-name              # 小写连字符
+   description: 描述            # 100字以内
+   ---
+   
+   # SKILL: skill-name
+   ...
+   ```
+3. 自检清单：
+   - [ ] 有 Front Matter (--- 包裹)
+   - [ ] name 是小写连字符格式
+   - [ ] 有 description
+   - [ ] 文件名为 SKILL.md (大写)
+   - [ ] UTF-8 编码
+4. 创建后添加到本 MEMORY.md 的对应分类
+
+**⚠️ 教训 (2026-02-11)**: 创建 xiuxian-idle skill 时未查阅 skill-creator，导致格式错误（缺少 Front Matter），无法被系统检索。**永不跳过此步骤！**
+
+
+### 游戏开发技能
+
+#### xiuxian-idle (2026-02-11创建)
+**路径**: `skills/xiuxian-idle/SKILL.md`  
+**项目**: 修仙挂机 (XiuXianIdle) - Web端放置游戏  
+**技术栈**: HTML/CSS/JavaScript
+
+**核心知识**:
+- CD自动战斗系统实现
+- 修为指数增长公式 (大境界100倍)
+- 装备锻造与品质系统
+- 丹药掉落与使用机制
+- localStorage + 导出导入存档
+- 离线收益计算
+
+**与 xiuxian-gamedev 的区别**:
+- xiuxian-idle → Web端放置游戏
+- xiuxian-gamedev → Unity卡牌游戏
+
+---
+
+#### xiuxian-gamedev (2026-02-10创建)
+**路径**: `skills/xiuxian-gamedev/SKILL.md`  
+**项目**: 修仙大巴扎 (XiuXianCards) - Unity卡牌游戏
   - 完整项目架构分析（236个C#文件）
   - **卡牌推挤系统实现**（服务器端验证，已修复3个关键BUG）
     - BUG #1: 卡牌位置计算错误（移动到自己原位置）

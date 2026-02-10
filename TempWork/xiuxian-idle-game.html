@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修仙挂机 - 问道长生</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; color: #eee; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #e94560; margin-bottom: 20px; }
+        .header h1 { font-size: 2.2em; color: #e94560; text-shadow: 0 0 20px rgba(233, 69, 96, 0.5); }
+        .main-grid { display: grid; grid-template-columns: 280px 1fr 280px; gap: 15px; }
+        @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } }
+        .panel { background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 15px; border: 1px solid rgba(233, 69, 96, 0.3); }
+        .panel-title { font-size: 1.1em; color: #e94560; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(233, 69, 96, 0.3); }
+        .realm-name { font-size: 1.5em; color: #ffd700; text-align: center; margin-bottom: 5px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+        .progress-container { margin: 10px 0; }
+        .progress-label { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 0.85em; }
+        .progress-bar { width: 100%; height: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 10px; transition: width 0.3s ease; background: linear-gradient(90deg, #e94560, #ff6b6b); }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+        .stat-item { background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px; text-align: center; }
+        .stat-label { font-size: 0.75em; color: #888; }
+        .stat-value { font-size: 1em; color: #fff; font-weight: bold; }
+        .btn { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; font-size: 0.95em; cursor: pointer; transition: all 0.3s ease; font-weight: bold; }
+        .btn-primary { background: linear-gradient(135deg, #e94560, #c73e54); color: white; }
+        .btn-primary:hover { background: linear-gradient(135deg, #ff5577, #e94560); transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .resources { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+        .resource-item { background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 8px; text-align: center; }
+        .resource-icon { font-size: 1.5em; }
+        .resource-name { color: #888; font-size: 0.8em; }
+        .resource-value { color: #fff; font-size: 1.1em; font-weight: bold; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .tab { padding: 8px 15px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; cursor: pointer; font-size: 0.9em; }
+        .tab.active { background: rgba(233, 69, 96, 0.3); border-color: #e94560; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .skill-list { display: flex; flex-direction: column; gap: 8px; }
+        .skill-item { background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+        .item-card { background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.3s; }
+        .item-card:hover { border-color: rgba(233, 69, 96, 0.5); }
+        .item-card.equipped { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
+        .log-container { max-height: 250px; overflow-y: auto; background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 10px; font-size: 0.85em; }
+        .log-entry { padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .enemy-info { background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        .enemy-name { font-size: 1.3em; color: #ff6b6b; margin-bottom: 8px; }
+        .combat-display { background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: center; }
+        .combat-vs { font-size: 2em; color: #ffd700; margin: 10px 0; }
+        .cd-bar { height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+        .cd-fill { height: 100%; background: linear-gradient(90deg, #00ff88, #00cc66); border-radius: 3px; transition: width 0.1s linear; }
+        .dungeon-list { display: flex; flex-direction: column; gap: 10px; }
+        .dungeon-item { background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
+        .dungeon-item:hover { border-color: rgba(233, 69, 96, 0.5); }
+        .dungeon-item.locked { opacity: 0.5; cursor: not-allowed; }
+        .dungeon-item.selected { border-color: #ffd700; }
+        .travel-map { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .map-location { background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; border: 2px solid transparent; }
+        .map-location:hover { border-color: rgba(233, 69, 96, 0.5); }
+        .map-location.current { border-color: #00ff88; background: rgba(0, 255, 136, 0.1); }
+        .equipment-slot { background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .rarity-common { color: #aaa; } .rarity-rare { color: #4169e1; } .rarity-epic { color: #9932cc; } .rarity-legendary { color: #ffd700; }
+        .skill-cd { font-size: 0.75em; color: #888; margin-top: 3px; }
+        .buff-list { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+        .buff-icon { background: rgba(233, 69, 96, 0.3); padding: 3px 8px; border-radius: 4px; font-size: 0.75em; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; border: 2px solid #e94560; }
+        .modal-title { font-size: 1.5em; color: #e94560; margin-bottom: 20px; text-align: center; }
+        .close-modal { float: right; font-size: 1.5em; cursor: pointer; color: #888; }
+        .close-modal:hover { color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗡️ 问道长生</h1>
+            <p style="color: #888; font-size: 0.9em;">放置修仙 · 问道长生</p>
+        </div>
+        <div class="main-grid">
+            <div class="panel">
+                <div class="panel-title">角色信息</div>
+                <div class="realm-name" id="realmName">炼气期</div>
+                <div style="text-align: center; color: #aaa; margin-bottom: 15px; font-size: 0.9em;" id="realmStage">一重</div>
+                <div class="progress-container">
+                    <div class="progress-label"><span>修为</span><span id="cultivationText">0 / 100</span></div>
+                    <div class="progress-bar"><div class="progress-fill" id="cultivationBar" style="width: 0%"></div></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label"><span>生命值</span><span id="playerHpText">100 / 100</span></div>
+                    <div class="progress-bar"><div class="progress-fill" id="playerHpBar" style="width: 100%; background: linear-gradient(90deg, #4169e1, #6495ed)"></div></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label"><span>寿元</span><span id="lifespanText">100 / 100</span></div>
+                    <div class="progress-bar"><div class="progress-fill" id="lifespanBar" style="width: 100%; background: linear-gradient(90deg, #228b22, #32cd32)"></div></div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item"><div class="stat-label">攻击力</div><div class="stat-value" id="atkValue">10</div></div>
+                    <div class="stat-item"><div class="stat-label">防御力</div><div class="stat-value" id="defValue">5</div></div>
+                    <div class="stat-item"><div class="stat-label">攻击速度</div><div class="stat-value" id="aspdValue">1.0</div></div>
+                    <div class="stat-item"><div class="stat-label">修炼速度</div><div class="stat-value" id="speedValue">1/s</div></div>
+                </div>
+                <div class="buff-list" id="buffList"></div>
+            </div>
+            <div class="panel">
+                <div class="resources">
+                    <div class="resource-item"><div class="resource-icon">💎</div><div class="resource-name">灵石</div><div class="resource-value" id="spiritStones">0</div></div>
+                    <div class="resource-item"><div class="resource-icon">🌿</div><div class="resource-name">灵草</div><div class="resource-value" id="herbs">0</div></div>
+                    <div class="resource-item"><div class="resource-icon">⚗️</div><div class="resource-name">丹药</div><div class="resource-value" id="pills">0</div></div>
+                    <div class="resource-item"><div class="resource-icon">📜</div><div class="resource-name">功法点</div><div class="resource-value" id="skillPoints">0</div></div>
+                </div>
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('cultivation')">修炼</div>
+                    <div class="tab" onclick="switchTab('combat')">战斗</div>
+                    <div class="tab" onclick="switchTab('dungeon')">副本</div>
+                    <div class="tab" onclick="switchTab('travel')">游历</div>
+                    <div class="tab" onclick="switchTab('bag')">背包</div>
+                    <div class="tab" onclick="switchTab('forge')">锻造</div>
+                    <div class="tab" onclick="switchTab('skills')">功法</div>
+                    <div class="tab" onclick="switchTab('alchemy')">炼丹</div>
+                </div>
+                <div class="tab-content active" id="cultivation">
+                    <button class="btn btn-primary" onclick="meditate()">🧘 打坐修炼 (+25修为)</button>
+                    <button class="btn btn-secondary" onclick="breakthrough()">⚡ 尝试突破</button>
+                    <div style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                        <p style="color: #888; text-align: center; font-size: 0.9em;">自动修炼: <span id="autoCultivation">1</span> 修为/秒<br>离线收益最多累计12小时</p>
+                        <p style="color: #ffd700; text-align: center; font-size: 0.85em; margin-top: 10px;" id="offlineReward"></p>
+                    </div>
+                </div>
+                <div class="tab-content" id="combat">
+                    <div class="combat-display" id="combatDisplay" style="display: none;">
+                        <div style="display: flex; justify-content: space-around; align-items: center;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.2em; color: #4169e1;">你</div>
+                                <div style="font-size: 0.85em; color: #888;">HP: <span id="combatPlayerHp">100</span></div>
+                                <div class="cd-bar" style="width: 100px; margin: 5px auto;"><div class="cd-fill" id="playerCdBar" style="width: 0%"></div></div>
+                            </div>
+                            <div class="combat-vs">⚔️</div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.2em; color: #ff6b6b;">敌人</div>
+                                <div style="font-size: 0.85em; color: #888;">HP: <span id="combatEnemyHp">50</span></div>
+                                <div class="cd-bar" style="width: 100px; margin: 5px auto;"><div class="cd-fill" id="enemyCdBar" style="width: 0%; background: linear-gradient(90deg, #ff4444, #ff6666)"></div></div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;" id="combatSkills"></div>
+                    </div>
+                    <div class="enemy-info" id="enemyInfo">
+                        <div class="enemy-name" id="enemyName">野狼</div>
+                        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="enemyHpBar" style="width: 100%; background: linear-gradient(90deg, #ff4444, #ff6666)"></div></div></div>
+                        <p style="color: #888; font-size: 0.9em;">战力: <span id="enemyPower">15</span> | 攻击: <span id="enemyAtk">8</span> | 掉落: <span id="enemyDrop">灵草 x1-3</span></p>
+                    </div>
+                    <button class="btn btn-primary" id="combatBtn" onclick="toggleCombat()">⚔️ 开始战斗</button>
+                    <button class="btn btn-secondary" onclick="nextEnemy()">🔍 更换对手</button>
+                </div>
+                <div class="tab-content" id="dungeon"><div class="dungeon-list" id="dungeonList"></div></div>
+                <div class="tab-content" id="travel">
+                    <div style="margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                        <p style="color: #888; font-size: 0.9em;">当前位置: <span id="currentLocation" style="color: #ffd700;">青云宗</span></p>
+                        <p style="color: #888; font-size: 0.85em; margin-top: 5px;">游历可获得随机资源、装备和奇遇</p>
+                    </div>
+                    <div class="travel-map" id="travelMap"></div>
+                    <button class="btn btn-primary" style="margin-top: 15px;" onclick="startTravel()">🎲 开始游历 (消耗10灵石)</button>
+                    <div class="log-container" style="margin-top: 15px; max-height: 150px;" id="travelLog"></div>
+                </div>
+                <div class="tab-content" id="bag">
+                    <div class="tabs" style="margin-bottom: 10px;">
+                        <div class="tab active" onclick="switchBagTab('equipment')" id="bagTab-equipment">装备</div>
+                        <div class="tab" onclick="switchBagTab('pills')" id="bagTab-pills">丹药</div>
+                    </div>
+                    <div id="bagContent-equipment">
+                        <div style="margin-bottom: 15px;">
+                            <div class="panel-title" style="font-size: 1em;">已装备</div>
+                            <div id="equippedItems">
+                                <div class="equipment-slot"><span>🗡️ 武器</span><span style="color: #888;" id="equipWeapon">无</span></div>
+                                <div class="equipment-slot"><span>🛡️ 防具</span><span style="color: #888;" id="equipArmor">无</span></div>
+                                <div class="equipment-slot"><span>💍 饰品</span><span style="color: #888;" id="equipAccessory">无</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="panel-title" style="font-size: 1em; display: flex; justify-content: space-between; align-items: center;">
+                                <span>装备背包 (<span id="bagCount">0</span>/50)</span>
+                                <button class="btn btn-secondary" style="width: auto; padding: 5px 15px; font-size: 0.8em; margin: 0;" onclick="sellAllItems()">💰 一键出售</button>
+                            </div>
+                            <div class="item-grid" id="bagItems"></div>
+                        </div>
+                    </div>
+                    <div id="bagContent-pills" style="display: none;">
+                        <div class="panel-title" style="font-size: 1em;">丹药背包 (<span id="pillsCount">0</span>/50)</div>
+                        <p style="color: #888; font-size: 0.85em; margin-bottom: 10px;">点击丹药使用（战斗中也可使用）</p>
+                        <div class="item-grid" id="pillItems"></div>
+                    </div>
+                </div>
+                <div class="tab-content" id="forge">
+                    <div class="panel-title" style="font-size: 1em;">锻造装备</div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="color: #888; font-size: 0.9em; margin-bottom: 10px;">消耗材料锻造装备，品质随机</p>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div class="item-card" onclick="forgeItem('weapon')">
+                                <div style="font-size: 2em;">🗡️</div>
+                                <div style="font-weight: bold;">锻造武器</div>
+                                <div style="color: #888; font-size: 0.8em;">灵石 x20<br>灵草 x10</div>
+                            </div>
+                            <div class="item-card" onclick="forgeItem('armor')">
+                                <div style="font-size: 2em;">🛡️</div>
+                                <div style="font-weight: bold;">锻造防具</div>
+                                <div style="color: #888; font-size: 0.8em;">灵石 x20<br>灵草 x10</div>
+                            </div>
+                            <div class="item-card" onclick="forgeItem('accessory')">
+                                <div style="font-size: 2em;">💍</div>
+                                <div style="font-weight: bold;">锻造饰品</div>
+                                <div style="color: #888; font-size: 0.8em;">灵石 x30<br>灵草 x15</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="forgeResult" style="text-align: center; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 8px; display: none;"></div>
+                </div>
+                <div class="tab-content" id="skills"><div class="skill-list" id="skillList"></div></div>
+                <div class="tab-content" id="alchemy"><div class="item-grid" id="alchemyGrid"></div></div>
+            </div>
+            <div class="panel">
+                <div class="panel-title">修仙日志</div>
+                <div class="log-container" id="logContainer"><div class="log-entry" style="color: #ffd700;">欢迎来到修仙世界！</div></div>
+                <button class="btn btn-secondary" style="margin-top: 10px; padding: 8px; font-size: 0.85em;" onclick="clearLog()">清空日志</button>
+                <button class="btn btn-secondary" style="padding: 8px; font-size: 0.85em;" onclick="exportSave()">导出存档</button>
+                <button class="btn btn-secondary" style="padding: 8px; font-size: 0.85em;" onclick="importSave()">导入存档</button>
+                <button class="btn btn-secondary" style="padding: 8px; font-size: 0.85em;" onclick="resetGame()">重置游戏</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div class="modal-title" id="modalTitle">标题</div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏数据 - 默认结构
+        const defaultGameData = {
+            player: {
+                realm: 0, stage: 1, cultivation: 0,
+                hp: 100, maxHp: 100, lifespan: 100, maxLifespan: 100,
+                baseAtk: 10, baseDef: 5, baseAspd: 1,
+                spiritStones: 0, herbs: 0, pills: 0, skillPoints: 0
+            },
+            combat: { inCombat: false, enemy: null, playerCd: 0, enemyCd: 0 },
+            equipment: { weapon: null, armor: null, accessory: null },
+            bag: [],
+            pillsBag: [],
+            buffs: [],
+            skills: [],
+            currentEnemyIdx: 0,
+            currentLocation: 0,
+            lastOnline: Date.now()
+        };
+        
+        // 创建 gameData 并合并默认值
+        const gameData = JSON.parse(JSON.stringify(defaultGameData));
+
+        const realms = ['炼气期', '筑基期', '金丹期', '元婴期', '化神期', '炼虚期', '合体期', '大乘期', '渡劫期', '真仙'];
+        const enemies = [
+            { name: '野狼', hp: 50, atk: 8, aspd: 1.2, exp: 10, drops: { herbs: [1,3], pillChance: 0.3 } },
+            { name: '山贼', hp: 80, atk: 12, aspd: 1, exp: 15, drops: { spiritStones: [5,10], pillChance: 0.4 } },
+            { name: '妖虎', hp: 150, atk: 20, aspd: 1.5, exp: 30, drops: { herbs: [3,5], pills: [1,2], pillChance: 0.6 } },
+            { name: '魔修', hp: 200, atk: 25, aspd: 1.3, exp: 50, drops: { spiritStones: [10,20], skillPoints: [1,3], pillChance: 0.7 } }
+        ];
+        const dungeons = [
+            { name: '新手试炼', power: 10, reward: { spiritStones: 20, herbs: 5 } },
+            { name: '妖兽森林', power: 30, reward: { spiritStones: 50, herbs: 15, pills: 2 } },
+            { name: '魔宗遗迹', power: 60, reward: { spiritStones: 100, skillPoints: 5 } },
+            { name: '上古战场', power: 100, reward: { spiritStones: 200, pills: 5, skillPoints: 10 } }
+        ];
+        const locations = ['青云宗', '落霞谷', '万剑山', '炼丹阁', '灵矿脉', '妖兽林'];
+        const skillData = [
+            { id: 1, name: '基础吐纳', desc: '提升修炼速度', effect: 'speed', value: 0.2, cost: 10 },
+            { id: 2, name: '金身诀', desc: '提升防御力', effect: 'def', value: 2, cost: 10 },
+            { id: 3, name: '御剑术', desc: '提升攻击力', effect: 'atk', value: 3, cost: 10 },
+            { id: 4, name: '疾风步', desc: '提升攻击速度', effect: 'aspd', value: 0.1, cost: 15 },
+            { id: 5, name: '火球术', desc: '战斗技能:造成150%伤害', effect: 'skill', value: 1.5, cd: 5, cost: 20 },
+            { id: 6, name: ' healing', desc: '战斗技能:回复30%生命', effect: 'heal', value: 0.3, cd: 8, cost: 20 }
+        ];
+        const recipes = [
+            { id: 'spirit', name: '聚气丹', icon: '💊', cost: { herbs: 5 }, effect: '修炼速度+50%持续5分钟' },
+            { id: 'breakthrough', name: '破境丹', icon: '🌟', cost: { herbs: 20, spiritStones: 50 }, effect: '突破成功率+30%' },
+            { id: 'lifespan', name: '寿元丹', icon: '🍑', cost: { herbs: 50, spiritStones: 100 }, effect: '寿元+10年' }
+        ];
+
+        // 战斗丹药定义
+        const pillTypes = [
+            { id: 'healSmall', name: '回春丹', icon: '💚', effect: 'heal', value: 30, desc: '回复30%生命值' },
+            { id: 'healMedium', name: '生肌丹', icon: '💙', effect: 'heal', value: 50, desc: '回复50%生命值' },
+            { id: 'healLarge', name: '九转还魂丹', icon: '💜', effect: 'heal', value: 80, desc: '回复80%生命值' },
+            { id: 'cultivationSmall', name: '聚气丹', icon: '💛', effect: 'cultivation', value: 50, desc: '增加50点修为' },
+            { id: 'cultivationMedium', name: '增元丹', icon: '🧡', effect: 'cultivation', value: 150, desc: '增加150点修为' },
+            { id: 'cultivationLarge', name: '天灵丹', icon: '❤️', effect: 'cultivation', value: 500, desc: '增加500点修为' }
+        ];
+
+        // 初始化
+        function init() {
+            // 先保存当前 skills 引用（如果 loadGame 后有数据）
+            loadGame();
+            calculateOfflineReward();
+            
+            // 确保 skills 数据正确合并
+            if (!gameData.skills || gameData.skills.length === 0) {
+                gameData.skills = skillData.map(s => ({ ...s, level: 0, cd: 0 }));
+            } else {
+                // 保留存档中的技能等级，但更新模板数据
+                const savedSkills = JSON.parse(JSON.stringify(gameData.skills));
+                gameData.skills = skillData.map(template => {
+                    const saved = savedSkills.find(s => s.id === template.id);
+                    return { ...template, level: saved ? saved.level : 0, cd: 0 };
+                });
+            }
+            renderSkills();
+            
+            // 初始化装备和丹药
+            initEquipment();
+            initAlchemy();
+            initDungeons();
+            initTravel();
+            updateUI();
+            setInterval(gameLoop, 100);
+            setInterval(saveGame, 10000);
+        }
+
+        function initSkills() {
+            // 如果没有存档的技能数据，才初始化
+            if (!gameData.skills || gameData.skills.length === 0) {
+                gameData.skills = skillData.map(s => ({ ...s, level: 0, cd: 0 }));
+            } else {
+                // 合并存档数据和技能模板（确保新技能也能被加载）
+                gameData.skills = skillData.map(template => {
+                    const saved = gameData.skills.find(s => s.id === template.id);
+                    return saved ? { ...template, ...saved, cd: 0 } : { ...template, level: 0, cd: 0 };
+                });
+            }
+            renderSkills();
+        }
+
+        function initEquipment() {
+            // 确保装备数据存在
+            if (!gameData.equipment) {
+                gameData.equipment = { weapon: null, armor: null, accessory: null };
+            }
+            if (!gameData.bag) {
+                gameData.bag = [];
+            }
+            if (!gameData.pillsBag) {
+                gameData.pillsBag = [];
+            }
+            if (!gameData.buffs) {
+                gameData.buffs = [];
+            }
+            renderBag();
+            renderEquipped();
+            renderPills();
+            updateBuffDisplay();
+        }
+
+        function initAlchemy() {
+            const grid = document.getElementById('alchemyGrid');
+            grid.innerHTML = recipes.map(r => `
+                <div class="item-card" onclick="craftPill('${r.id}')">
+                    <div style="font-size: 2em;">${r.icon}</div>
+                    <div style="font-weight: bold;">${r.name}</div>
+                    <div style="color: #888; font-size: 0.8em;">${Object.entries(r.cost).map(([k,v])=>`${k==='herbs'?'🌿':'💎'}${v}`).join(' ')}</div>
+                    <div style="color: #e94560; font-size: 0.75em;">${r.effect}</div>
+                </div>
+            `).join('');
+        }
+
+        function initDungeons() {
+            const list = document.getElementById('dungeonList');
+            const playerPower = getPlayerPower();
+            list.innerHTML = dungeons.map((d,i) => `
+                <div class="dungeon-item ${playerPower < d.power ? 'locked' : ''}" onclick="enterDungeon(${i})">
+                    <div style="font-weight: bold;">${d.name}</div>
+                    <div style="color: #888; font-size: 0.85em;">推荐战力: ${d.power} | 你的战力: ${playerPower}</div>
+                    <div style="color: #ffd700; font-size: 0.8em;">奖励: ${Object.entries(d.reward).map(([k,v])=>v+['灵石','灵草','丹药','功法点'][['spiritStones','herbs','pills','skillPoints'].indexOf(k)]).join(', ')}</div>
+                </div>
+            `).join('');
+        }
+
+        function initTravel() {
+            const map = document.getElementById('travelMap');
+            map.innerHTML = locations.map((l,i) => `
+                <div class="map-location ${i===gameData.currentLocation?'current':''}" onclick="setLocation(${i})">
+                    <div style="font-size: 1.5em;">${['🏔️','🌄','⚔️','⚗️','⛏️','🐺'][i]}</div>
+                    <div style="font-size: 0.85em;">${l}</div>
+                </div>
+            `).join('');
+        }
+
+        // 游戏循环
+        function gameLoop() {
+            // 自动修炼 (每0.1秒执行一次)
+            const baseSpeed = 5 + gameData.player.realm * 2;
+            const skillBonus = getSkillBonus('speed');
+            const buffBonus = getBuffBonus('speed');
+            gameData.player.cultivation += (baseSpeed + skillBonus + buffBonus) * 0.1;
+            
+            // 寿命消耗
+            if (Math.random() < 0.0001) gameData.player.lifespan -= 0.1;
+            
+            // 战斗逻辑
+            if (gameData.combat.inCombat && gameData.combat.enemy) {
+                updateCombat();
+            }
+            
+            // 技能CD
+            gameData.skills.forEach(s => { if (s.cd > 0) s.cd -= 0.1; });
+            
+            // Buff倒计时更新（每秒更新一次显示）
+            if (Math.floor(Date.now() / 1000) % 1 === 0) {
+                updateBuffDisplay();
+            }
+            
+            updateUI();
+        }
+
+        // 战斗系统
+        function updateCombat() {
+            const c = gameData.combat;
+            const p = gameData.player;
+            const e = c.enemy;
+            
+            // CD进度
+            c.playerCd += p.baseAspd + getSkillBonus('aspd');
+            c.enemyCd += e.aspd;
+            
+            // 玩家攻击
+            if (c.playerCd >= 2) {
+                c.playerCd = 0;
+                const dmg = Math.max(1, (p.baseAtk + getSkillBonus('atk') + getEquipBonus('atk')) - e.def || 0);
+                e.hp -= dmg;
+                addLog(`你对${e.name}造成${dmg}点伤害`, '#888');
+                
+                // 自动释放技能
+                const skill = gameData.skills.find(s => s.effect === 'skill' && s.level > 0 && s.cd <= 0);
+                if (skill) useSkill(skill);
+            }
+            
+            // 敌人攻击
+            if (c.enemyCd >= 2) {
+                c.enemyCd = 0;
+                const def = p.baseDef + getSkillBonus('def') + getEquipBonus('def');
+                const dmg = Math.max(1, e.atk - def);
+                p.hp -= dmg;
+                addLog(`${e.name}对你造成${dmg}点伤害`, '#ff6b6b');
+            }
+            
+            // 战斗结束
+            if (e.hp <= 0) winCombat();
+            else if (p.hp <= 0) loseCombat();
+            
+            updateCombatUI();
+        }
+
+        function useSkill(skill) {
+            const e = gameData.combat.enemy;
+            const p = gameData.player;
+            skill.cd = skillData.find(s=>s.id===skill.id).cd;
+            
+            if (skill.effect === 'skill') {
+                const dmg = Math.floor((p.baseAtk + getSkillBonus('atk')) * skill.value);
+                e.hp -= dmg;
+                addLog(`🔥 火球术造成${dmg}点伤害!`, '#ff6b6b');
+            } else if (skill.effect === 'heal') {
+                const heal = Math.floor(p.maxHp * skill.value);
+                p.hp = Math.min(p.maxHp, p.hp + heal);
+                addLog(`💚 回复${heal}点生命`, '#00ff88');
+            }
+            updateCombatUI();
+        }
+
+        function winCombat() {
+            const e = enemies[gameData.currentEnemyIdx];
+            addLog(`🎉 击败${e.name}!`, '#ffd700');
+            
+            // 掉落
+            if (e.drops.herbs) gameData.player.herbs += rand(...e.drops.herbs);
+            if (e.drops.spiritStones) gameData.player.spiritStones += rand(...e.drops.spiritStones);
+            if (e.drops.pills) gameData.player.pills += rand(...e.drops.pills);
+            if (e.drops.skillPoints) gameData.player.skillPoints += rand(...e.drops.skillPoints);
+            
+            // 经验
+            gameData.player.cultivation += e.exp;
+            
+            // 装备掉落
+            if (Math.random() < 0.3) dropEquipment();
+            
+            // 丹药掉落
+            if (e.drops.pillChance && Math.random() < e.drops.pillChance && gameData.pillsBag.length < 50) {
+                dropPill();
+            }
+            
+            endCombat();
+        }
+
+        function dropPill() {
+            // 检查丹药背包上限
+            if (gameData.pillsBag.length >= 50) {
+                addLog('❌ 丹药背包已满', '#ff4444');
+                return;
+            }
+            
+            // 根据敌人强度决定丹药品质
+            const enemyPower = gameData.currentEnemyIdx;
+            let availablePills;
+            if (enemyPower <= 1) availablePills = ['healSmall', 'cultivationSmall'];
+            else if (enemyPower <= 2) availablePills = ['healSmall', 'healMedium', 'cultivationSmall', 'cultivationMedium'];
+            else availablePills = ['healMedium', 'healLarge', 'cultivationMedium', 'cultivationLarge'];
+            
+            const pillType = availablePills[rand(0, availablePills.length - 1)];
+            const pillTemplate = pillTypes.find(p => p.id === pillType);
+            
+            const pill = {
+                id: Date.now() + rand(0, 1000),
+                ...pillTemplate
+            };
+            
+            gameData.pillsBag.push(pill);
+            renderPills();
+            addLog(`💊 获得${pill.name}!`, '#00ff88');
+        }
+
+        function loseCombat() {
+            addLog('💀 你被打败了...', '#ff4444');
+            gameData.player.hp = 1;
+            endCombat();
+        }
+
+        function endCombat() {
+            gameData.combat.inCombat = false;
+            gameData.combat.enemy = null;
+            document.getElementById('combatDisplay').style.display = 'none';
+            document.getElementById('enemyInfo').style.display = 'block';
+            document.getElementById('combatBtn').textContent = '⚔️ 开始战斗';
+        }
+
+        function dropEquipment() {
+            const rarities = ['common','common','rare','epic','legendary'];
+            const rarity = rarities[Math.floor(Math.random() * rarities.length)];
+            const types = ['weapon','armor','accessory'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            const item = {
+                id: Date.now(),
+                name: generateItemName(type, rarity),
+                type, rarity,
+                atk: type==='weapon'?rand(5,15)*(rarity==='legendary'?3:rarity==='epic'?2:rarity==='rare'?1.5:1):0,
+                def: type==='armor'?rand(3,10)*(rarity==='legendary'?3:rarity==='epic'?2:rarity==='rare'?1.5:1):0,
+                hp: type==='accessory'?rand(20,50)*(rarity==='legendary'?3:rarity==='epic'?2:rarity==='rare'?1.5:1):0
+            };
+            
+            if (gameData.bag.length < 50) {
+                gameData.bag.push(item);
+                addLog(`🎁 获得${getRarityName(rarity)}${item.name}!`, getRarityColor(rarity));
+                renderBag();
+            } else {
+                addLog('❌ 背包已满，无法获得装备', '#ff4444');
+            }
+        }
+
+        function generateItemName(type, rarity) {
+            const prefixes = { common: ['破旧的','普通的'], rare: ['精良的','稀有的'], epic: ['史诗的','传说的'], legendary: ['神话的','至尊的'] };
+            const names = { weapon: ['铁剑','长刀','法杖','飞剑'], armor: ['布甲','皮甲','铁甲','仙袍'], accessory: ['玉佩','戒指','项链','手镯'] };
+            return prefixes[rarity][rand(0,1)] + names[type][rand(0,3)];
+        }
+
+        // UI更新
+        function updateUI() {
+            const p = gameData.player;
+            const reqCult = getReqCultivation();
+            document.getElementById('realmName').textContent = realms[p.realm];
+            document.getElementById('realmStage').textContent = ['一','二','三','四','五','六','七','八','九','十'][p.stage-1] + '重';
+            document.getElementById('cultivationText').textContent = `${Math.floor(p.cultivation)} / ${reqCult}`;
+            document.getElementById('cultivationBar').style.width = `${Math.min(100, p.cultivation/reqCult*100)}%`;
+            document.getElementById('playerHpText').textContent = `${Math.floor(p.hp)} / ${p.maxHp}`;
+            document.getElementById('playerHpBar').style.width = `${p.hp/p.maxHp*100}%`;
+            document.getElementById('lifespanText').textContent = `${Math.floor(p.lifespan)} / ${p.maxLifespan}`;
+            document.getElementById('lifespanBar').style.width = `${p.lifespan/p.maxLifespan*100}%`;
+            document.getElementById('atkValue').textContent = p.baseAtk + getSkillBonus('atk') + getEquipBonus('atk');
+            document.getElementById('defValue').textContent = p.baseDef + getSkillBonus('def') + getEquipBonus('def');
+            document.getElementById('aspdValue').textContent = (p.baseAspd + getSkillBonus('aspd')).toFixed(1);
+            document.getElementById('speedValue').textContent = (5 + p.realm * 2 + getSkillBonus('speed') + getBuffBonus('speed')).toFixed(1) + '/s';
+            document.getElementById('spiritStones').textContent = p.spiritStones;
+            document.getElementById('herbs').textContent = p.herbs;
+            document.getElementById('pills').textContent = p.pills;
+            document.getElementById('skillPoints').textContent = p.skillPoints;
+            document.getElementById('autoCultivation').textContent = (5 + p.realm * 2 + getSkillBonus('speed') + getBuffBonus('speed')).toFixed(1);
+            
+            renderEquipped();
+        }
+
+        function renderPills() {
+            const grid = document.getElementById('pillItems');
+            const countEl = document.getElementById('pillsCount');
+            if (countEl) countEl.textContent = gameData.pillsBag.length;
+            if (!grid) return;
+            
+            grid.innerHTML = gameData.pillsBag.map(pill => {
+                // 使用 JSON.stringify 确保字符串 id 被正确转义
+                const pillId = JSON.stringify(pill.id);
+                return `<div class="item-card" onclick='usePill(${pillId})'>
+                    <div style="font-size: 2em;">${pill.icon}</div>
+                    <div style="font-weight: bold; font-size: 0.9em;">${pill.name}</div>
+                    <div style="color: #888; font-size: 0.75em;">${pill.desc}</div>
+                </div>`;
+            }).join('') || '<div style="color: #888; text-align: center; grid-column: 1/-1;">暂无丹药</div>';
+        }
+
+        function usePill(id) {
+            const pillIndex = gameData.pillsBag.findIndex(p => p.id === id);
+            if (pillIndex === -1) {
+                console.log('丹药未找到:', id, '当前背包:', gameData.pillsBag.map(p => p.id));
+                return;
+            }
+            
+            const pill = gameData.pillsBag[pillIndex];
+            
+            if (pill.effect === 'heal') {
+                const healAmount = Math.floor(gameData.player.maxHp * (pill.value / 100));
+                gameData.player.hp = Math.min(gameData.player.maxHp, gameData.player.hp + healAmount);
+                addLog(`💚 使用${pill.name}，回复${healAmount}点生命`, '#00ff88');
+            } else if (pill.effect === 'cultivation') {
+                gameData.player.cultivation += pill.value;
+                addLog(`💛 使用${pill.name}，修为+${pill.value}`, '#ffd700');
+            }
+            
+            // 移除使用的丹药
+            gameData.pillsBag.splice(pillIndex, 1);
+            renderPills();
+            updateUI();
+            saveGame();
+        }
+
+        function updateCombatUI() {
+            const c = gameData.combat;
+            document.getElementById('combatPlayerHp').textContent = Math.floor(gameData.player.hp);
+            document.getElementById('combatEnemyHp').textContent = Math.floor(c.enemy.hp);
+            document.getElementById('playerCdBar').style.width = `${Math.min(100, c.playerCd/2*100)}%`;
+            document.getElementById('enemyCdBar').style.width = `${Math.min(100, c.enemyCd/2*100)}%`;
+        }
+
+        function renderSkills() {
+            const list = document.getElementById('skillList');
+            list.innerHTML = gameData.skills.map(s => `
+                <div class="skill-item">
+                    <div>
+                        <div style="font-weight: bold;">${s.name}</div>
+                        <div style="color: #888; font-size: 0.85em;">${s.desc}</div>
+                        ${s.level>0 && s.cd>0 ? `<div class="skill-cd">CD: ${s.cd.toFixed(1)}s</div>` : ''}
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="color: #ffd700; font-weight: bold;">Lv.${s.level}</div>
+                        <button class="btn btn-secondary" style="padding: 5px 10px; margin-top: 5px; font-size: 0.8em;" onclick="upgradeSkill(${s.id})" ${gameData.player.skillPoints < s.cost * s.level ? 'disabled' : ''}>
+                            升级 (${s.cost * (s.level || 1)}点)
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderBag() {
+            document.getElementById('bagCount').textContent = gameData.bag.length;
+            const grid = document.getElementById('bagItems');
+            const rarityValues = { common: 5, rare: 15, epic: 40, legendary: 100 };
+            grid.innerHTML = gameData.bag.map(item => `
+                <div class="item-card ${isEquipped(item)?'equipped':''}">
+                    <div onclick="clickItem(${item.id})" style="cursor: pointer;">
+                        <div style="font-size: 1.5em;">${item.type==='weapon'?'🗡️':item.type==='armor'?'🛡️':'💍'}</div>
+                        <div style="font-weight: bold; ${getRarityColor(item.rarity)}; font-size: 0.9em;">${item.name}</div>
+                        <div style="color: #888; font-size: 0.75em;">${item.atk?`攻击+${item.atk}`:item.def?`防御+${item.def}`:`生命+${item.hp}`}</div>
+                    </div>
+                    <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.7em; margin: 5px 0 0 0; ${isEquipped(item)?'display:none;':''}" onclick="sellItem(${item.id}, event)">
+                        出售 ${rarityValues[item.rarity]}💎
+                    </button>
+                </div>
+            `).join('') || '<div style="color: #888; text-align: center; grid-column: 1/-1;">背包空空如也</div>';
+        }
+
+        function renderEquipped() {
+            const eq = gameData.equipment;
+            document.getElementById('equipWeapon').innerHTML = eq.weapon ? `<span class="${getRarityColor(eq.weapon.rarity)}">${eq.weapon.name}</span>` : '无';
+            document.getElementById('equipArmor').innerHTML = eq.armor ? `<span class="${getRarityColor(eq.armor.rarity)}">${eq.armor.name}</span>` : '无';
+            document.getElementById('equipAccessory').innerHTML = eq.accessory ? `<span class="${getRarityColor(eq.accessory.rarity)}">${eq.accessory.name}</span>` : '无';
+        }
+
+        // 操作函数
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.add('active');
+        }
+
+        function toggleCombat() {
+            if (gameData.combat.inCombat) {
+                endCombat();
+            } else {
+                startCombat();
+            }
+        }
+
+        function startCombat() {
+            const e = enemies[gameData.currentEnemyIdx];
+            gameData.combat.inCombat = true;
+            gameData.combat.enemy = { ...e, hp: e.hp, def: e.def || 0 };
+            gameData.combat.playerCd = 0;
+            gameData.combat.enemyCd = 0;
+            document.getElementById('combatDisplay').style.display = 'block';
+            document.getElementById('enemyInfo').style.display = 'none';
+            document.getElementById('combatBtn').textContent = '🏃 逃跑';
+            addLog(`⚔️ 遭遇${e.name}!`, '#ff6b6b');
+            updateCombatUI(); // 立即更新血条显示
+        }
+
+        function nextEnemy() {
+            gameData.currentEnemyIdx = (gameData.currentEnemyIdx + 1) % enemies.length;
+            const e = enemies[gameData.currentEnemyIdx];
+            document.getElementById('enemyName').textContent = e.name;
+            document.getElementById('enemyPower').textContent = Math.floor(e.hp/5 + e.atk);
+            document.getElementById('enemyAtk').textContent = e.atk;
+            document.getElementById('enemyDrop').textContent = e.drops.herbs?'灵草 x1-3':e.drops.spiritStones?'灵石 x5-10':'丹药 x1-2';
+        }
+
+        function meditate() {
+            gameData.player.cultivation += 25;
+            addLog('🧘 打坐修炼,修为+25', '#888');
+        }
+
+        function breakthrough() {
+            const p = gameData.player;
+            const req = getReqCultivation();
+            if (p.cultivation < req) {
+                addLog('❌ 修为不足,无法突破', '#ff4444');
+                return;
+            }
+            
+            // 检查是否有破境丹buff
+            const breakthroughBuff = gameData.buffs?.find(b => b.type === 'breakthrough');
+            const buffBonus = breakthroughBuff ? breakthroughBuff.value : 0;
+            
+            const chance = 0.5 + buffBonus;
+            if (Math.random() < chance) {
+                p.cultivation -= req;
+                p.stage++;
+                if (p.stage > 10) {
+                    p.stage = 1;
+                    p.realm++;
+                    addLog(`🎉 突破成功!进入${realms[p.realm]}`, '#ffd700');
+                } else {
+                    addLog(`✨ 突破成功!${realms[p.realm]}${['一','二','三','四','五','六','七','八','九','十'][p.stage-1]}重`, '#ffd700');
+                }
+                p.maxHp += 20;
+                p.hp = p.maxHp;
+                p.baseAtk += 2;
+                p.baseDef += 1;
+                
+                // 突破成功后移除破境丹buff
+                if (breakthroughBuff) {
+                    gameData.buffs = gameData.buffs.filter(b => b.type !== 'breakthrough');
+                    updateBuffDisplay();
+                }
+            } else {
+                p.cultivation -= Math.floor(req * 0.3);
+                addLog('💔 突破失败,损失30%修为', '#ff4444');
+            }
+        }
+
+        function upgradeSkill(id) {
+            const s = gameData.skills.find(x => x.id === id);
+            const cost = s.cost * (s.level || 1);
+            if (gameData.player.skillPoints >= cost) {
+                gameData.player.skillPoints -= cost;
+                s.level++;
+                addLog(`✨ ${s.name}提升到Lv.${s.level}`, '#ffd700');
+                renderSkills();
+                saveGame(); // 立即存档
+            }
+        }
+
+        function craftPill(id) {
+            const r = recipes.find(x => x.id === id);
+            const canCraft = Object.entries(r.cost).every(([k,v]) => gameData.player[k] >= v);
+            if (!canCraft) {
+                addLog('❌ 材料不足', '#ff4444');
+                return;
+            }
+            Object.entries(r.cost).forEach(([k,v]) => gameData.player[k] -= v);
+            addLog(`⚗️ 炼制成功:${r.name}`, '#00ff88');
+            
+            // 添加buff效果
+            if (id === 'spirit') {
+                addBuff('聚气丹', '修炼速度+50%', 300, 'speed', 0.5); // 5分钟 = 300秒
+            } else if (id === 'breakthrough') {
+                addBuff('破境丹', '突破成功率+30%', -1, 'breakthrough', 0.3); // 永久直到使用
+            } else if (id === 'lifespan') {
+                gameData.player.lifespan += 10;
+                addBuff('寿元丹', '寿元+10年', -1, 'lifespan', 10);
+            }
+            
+            updateBuffDisplay();
+            saveGame(); // 立即存档
+        }
+
+        // Buff系统
+        function addBuff(name, desc, duration, type, value) {
+            if (!gameData.buffs) gameData.buffs = [];
+            
+            // 移除同类型buff
+            gameData.buffs = gameData.buffs.filter(b => b.type !== type);
+            
+            gameData.buffs.push({
+                name,
+                desc,
+                type,
+                value,
+                endTime: duration > 0 ? Date.now() + duration * 1000 : -1
+            });
+            
+            addLog(`✨ 获得增益: ${desc}`, '#ffd700');
+        }
+
+        function updateBuffDisplay() {
+            const buffList = document.getElementById('buffList');
+            if (!buffList) return;
+            
+            if (!gameData.buffs || gameData.buffs.length === 0) {
+                buffList.innerHTML = '';
+                return;
+            }
+            
+            // 清理过期buff
+            const now = Date.now();
+            gameData.buffs = gameData.buffs.filter(b => b.endTime === -1 || b.endTime > now);
+            
+            buffList.innerHTML = gameData.buffs.map(b => {
+                let timeText = '';
+                if (b.endTime > 0) {
+                    const remaining = Math.ceil((b.endTime - now) / 1000);
+                    timeText = ` (${remaining}s)`;
+                }
+                return `<div class="buff-icon" title="${b.desc}${timeText}">${b.name}${timeText}</div>`;
+            }).join('');
+        }
+
+        function enterDungeon(idx) {
+            const d = dungeons[idx];
+            const power = getPlayerPower();
+            if (power < d.power) {
+                addLog('❌ 战力不足!', '#ff4444');
+                return;
+            }
+            // 模拟战斗
+            const dmg = Math.floor(d.power * 0.5);
+            gameData.player.hp -= dmg;
+            Object.entries(d.reward).forEach(([k,v]) => gameData.player[k] += v);
+            addLog(`🏰 通关${d.name}!获得奖励`, '#ffd700');
+            if (Math.random() < 0.5) dropEquipment();
+            if (Math.random() < 0.7 && gameData.pillsBag.length < 50) dropPill(); // 副本有更高概率掉落丹药
+        }
+
+        function setLocation(idx) {
+            gameData.currentLocation = idx;
+            initTravel();
+            document.getElementById('currentLocation').textContent = locations[idx];
+        }
+
+        function startTravel() {
+            if (gameData.player.spiritStones < 10) {
+                addLog('❌ 灵石不足', '#ff4444');
+                return;
+            }
+            gameData.player.spiritStones -= 10;
+            
+            const events = [
+                () => { const n=rand(1,5); gameData.player.herbs+=n; return `🌿 采集到${n}株灵草`; },
+                () => { const n=rand(10,30); gameData.player.spiritStones+=n; return `💎 发现${n}颗灵石`; },
+                () => { dropEquipment(); return '🎁 发现宝物!'; },
+                () => { gameData.player.skillPoints+=1; return '📜 领悟功法心得'; },
+                () => '👣 一无所获...'
+            ];
+            const result = events[rand(0, events.length-1)]();
+            addLog(`🎲 ${result}`, '#ffd700');
+            document.getElementById('travelLog').innerHTML += `<div class="log-entry">${result}</div>`;
+        }
+
+        function clickItem(id) {
+            id = Number(id);
+            const item = gameData.bag.find(x => x.id === id);
+            if (isEquipped(item)) {
+                gameData.equipment[item.type] = null;
+                addLog(`脱下${item.name}`, '#888');
+            } else {
+                gameData.equipment[item.type] = item;
+                addLog(`装备${item.name}`, '#00ff88');
+            }
+            renderBag();
+            renderEquipped();
+        }
+
+        // 工具函数
+        function getReqCultivation() {
+            const base = 50;
+            const stageMultiplier = Math.pow(1.5, gameData.player.stage - 1);
+            const realmMultiplier = Math.pow(100, gameData.player.realm);
+            return Math.floor(base * stageMultiplier * realmMultiplier);
+        }
+        function getSkillBonus(type) { return gameData.skills.filter(s => s.effect === type).reduce((a,s) => a + s.value * s.level, 0); }
+        function getBuffBonus(type) {
+            if (!gameData.buffs) return 0;
+            const now = Date.now();
+            return gameData.buffs
+                .filter(b => b.type === type && (b.endTime === -1 || b.endTime > now))
+                .reduce((a, b) => a + b.value, 0);
+        }
+        function getEquipBonus(type) { const eq = gameData.equipment; return (eq.weapon?.atk || 0) + (eq.armor?.def || 0) + (eq.accessory?.hp || 0); }
+        function getPlayerPower() { return Math.floor(gameData.player.maxHp/5 + getTotalAtk() + getTotalDef()); }
+        function getTotalAtk() { return gameData.player.baseAtk + getSkillBonus('atk') + getEquipBonus('atk'); }
+        function getTotalDef() { return gameData.player.baseDef + getSkillBonus('def') + getEquipBonus('def'); }
+        function isEquipped(item) { return Number(gameData.equipment[item.type]?.id) === Number(item.id); }
+        function getRarityName(r) { return {common:'普通',rare:'稀有',epic:'史诗',legendary:'传说'}[r]; }
+        function getRarityColor(r) { return {common:'color:#aaa',rare:'color:#4169e1',epic:'color:#9932cc',legendary:'color:#ffd700'}[r]; }
+        function rand(min,max) { return Math.floor(Math.random() * (max-min+1)) + min; }
+        function sellAllItems() {
+            const unequipped = gameData.bag.filter(item => !isEquipped(item));
+            if (unequipped.length === 0) {
+                addLog('没有可出售的装备（已穿戴的不会被出售）', '#888');
+                return;
+            }
+            let totalValue = 0;
+            const rarityValues = { common: 5, rare: 15, epic: 40, legendary: 100 };
+            unequipped.forEach(item => {
+                totalValue += rarityValues[item.rarity] || 5;
+            });
+            gameData.player.spiritStones += totalValue;
+            gameData.bag = gameData.bag.filter(item => isEquipped(item));
+            renderBag();
+            saveGame();
+            addLog(`💰 出售${unequipped.length}件装备，获得${totalValue}灵石`, '#ffd700');
+        }
+
+        function sellItem(id, event) {
+            event.stopPropagation();
+            id = Number(id);
+            const item = gameData.bag.find(x => x.id === id);
+            if (!item || isEquipped(item)) return;
+            
+            const rarityValues = { common: 5, rare: 15, epic: 40, legendary: 100 };
+            const value = rarityValues[item.rarity] || 5;
+            gameData.player.spiritStones += value;
+            gameData.bag = gameData.bag.filter(x => x.id !== id);
+            renderBag();
+            saveGame();
+            addLog(`💰 出售${item.name}，获得${value}灵石`, '#ffd700');
+        }
+
+        function switchBagTab(tab) {
+            document.getElementById('bagTab-equipment').classList.toggle('active', tab === 'equipment');
+            document.getElementById('bagTab-pills').classList.toggle('active', tab === 'pills');
+            document.getElementById('bagContent-equipment').style.display = tab === 'equipment' ? 'block' : 'none';
+            document.getElementById('bagContent-pills').style.display = tab === 'pills' ? 'block' : 'none';
+        }
+
+        function forgeItem(type) {
+            const costs = { weapon: { stones: 20, herbs: 10 }, armor: { stones: 20, herbs: 10 }, accessory: { stones: 30, herbs: 15 } };
+            const cost = costs[type];
+            
+            if (gameData.player.spiritStones < cost.stones || gameData.player.herbs < cost.herbs) {
+                addLog('❌ 材料不足，无法锻造', '#ff4444');
+                return;
+            }
+            
+            if (gameData.bag.length >= 50) {
+                addLog('❌ 背包已满，无法锻造', '#ff4444');
+                return;
+            }
+            
+            gameData.player.spiritStones -= cost.stones;
+            gameData.player.herbs -= cost.herbs;
+            
+            // 锻造品质概率
+            const randVal = Math.random();
+            let rarity;
+            if (randVal < 0.5) rarity = 'common';
+            else if (randVal < 0.8) rarity = 'rare';
+            else if (randVal < 0.95) rarity = 'epic';
+            else rarity = 'legendary';
+            
+            const item = {
+                id: Date.now(),
+                name: generateItemName(type, rarity),
+                type, rarity,
+                atk: type==='weapon'?rand(5,15)*(rarity==='legendary'?3:rarity==='epic'?2:rarity==='rare'?1.5:1):0,
+                def: type==='armor'?rand(3,10)*(rarity==='legendary'?3:rarity==='epic'?2:rarity==='rare'?1.5:1):0,
+                hp: type==='accessory'?rand(20,50)*(rarity==='legendary'?3:rarity==='epic'?2:rarity==='rare'?1.5:1):0
+            };
+            
+            gameData.bag.push(item);
+            renderBag();
+            saveGame();
+            
+            const resultDiv = document.getElementById('forgeResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <div style="font-size: 3em; margin-bottom: 10px;">${type==='weapon'?'🗡️':type==='armor'?'🛡️':'💍'}</div>
+                <div style="font-size: 1.3em; font-weight: bold; ${getRarityColor(rarity)}">锻造成功！</div>
+                <div style="font-size: 1.1em; margin: 10px 0;">${item.name}</div>
+                <div style="color: #888;">${item.atk?`攻击+${item.atk}`:item.def?`防御+${item.def}`:`生命+${item.hp}`}</div>
+            `;
+            
+            addLog(`⚒️ 锻造成功！获得${getRarityName(rarity)}${item.name}`, getRarityColor(rarity));
+        }
+        function addLog(msg, color='#fff') {
+            const log = document.getElementById('logContainer');
+            log.innerHTML = `<div class="log-entry" style="color:${color}">${new Date().toLocaleTimeString()} ${msg}</div>` + log.innerHTML;
+            if (log.children.length > 50) log.lastChild.remove();
+        }
+        function clearLog() { document.getElementById('logContainer').innerHTML = ''; }
+
+        // 存档系统
+        function saveGame() {
+            gameData.lastOnline = Date.now();
+            const saveData = JSON.stringify(gameData);
+            localStorage.setItem('xiuxianIdle', saveData);
+            console.log('游戏已存档，技能数据:', gameData.skills.map(s => `${s.name}:Lv${s.level}`).join(', '));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('xiuxianIdle');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                console.log('读取存档，原始技能数据:', parsed.skills ? parsed.skills.map(s => `${s.name}:Lv${s.level}`).join(', ') : '无');
+                // 深度合并存档数据
+                mergeDeep(gameData, parsed);
+            }
+        }
+
+        // 深度合并对象
+        function mergeDeep(target, source) {
+            for (const key in source) {
+                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    if (!target[key]) target[key] = {};
+                    mergeDeep(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            }
+        }
+
+        function calculateOfflineReward() {
+            const offline = (Date.now() - gameData.lastOnline) / 1000;
+            const maxOffline = 12 * 3600;
+            const actual = Math.min(offline, maxOffline);
+            const reward = Math.floor(actual * (1 + gameData.player.realm * 0.5));
+            gameData.player.cultivation += reward;
+            if (reward > 0) document.getElementById('offlineReward').textContent = `离线收益: +${reward}修为`;
+        }
+
+        function exportSave() {
+            try {
+                const json = JSON.stringify(gameData);
+                const data = btoa(encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+                const modalHtml = `<textarea id="saveCode" style="width:100%;height:100px;background:rgba(0,0,0,0.3);color:#fff;border:1px solid #e94560;padding:10px;border-radius:5px;resize:none;" readonly>${data}</textarea><p style="color:#888;margin-top:10px;font-size:0.85em;">复制上方代码保存，导入时粘贴使用</p><button class="btn btn-primary" style="margin-top:10px;" onclick="copySaveCode()">📋 复制到剪贴板</button>`;
+                showModal('导出存档', modalHtml);
+            } catch(e) {
+                alert('导出失败: ' + e.message);
+            }
+        }
+
+        function importSave() {
+            const input = prompt('请输入存档代码:');
+            if (input) {
+                try {
+                    const json = decodeURIComponent(atob(input).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                    Object.assign(gameData, JSON.parse(json));
+                    saveGame();
+                    location.reload();
+                } catch(e) { alert('存档代码无效: ' + e.message); }
+            }
+        }
+
+        function resetGame() {
+            if (confirm('确定要重置游戏吗?所有进度将丢失!')) {
+                localStorage.removeItem('xiuxianIdle');
+                location.reload();
+            }
+        }
+
+        function showModal(title, body) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = body;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function copySaveCode() {
+            const textarea = document.getElementById('saveCode');
+            if (textarea) {
+                textarea.select();
+                document.execCommand('copy');
+                alert('存档代码已复制到剪贴板！');
+            }
+        }
+
+        // 启动
+        window.onload = init;
+    </script>
+</body>
+</html>
