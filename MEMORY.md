@@ -153,6 +153,12 @@ npx clawhub@latest list
 - 原因：服务器只为移动的卡牌触发onCardMoved，未为被推挤卡牌触发
 - 修复：在推挤循环中添加onCardMoved事件触发
 
+**依赖树最新更新** (2026-02-10 22:36):
+- 添加 **Medium Card Position** 实现
+- 需求：中型卡（2格）显示位置在两个槽位中心
+- 实现：BoardCard.CalculateCardPosition() 计算所占据槽位的中心点
+- 支持 Small(1格)/Medium(2格)/Big(3格) 三种尺寸
+
 ### Skill开发工具（2026-02-10创建）
 - **skill-creator** (自定义v1.0) - Skill创建和格式化指南
   - SKILL.md标准格式规范

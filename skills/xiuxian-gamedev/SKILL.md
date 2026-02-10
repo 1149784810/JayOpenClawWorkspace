@@ -625,6 +625,16 @@ if (cardAtSlot.uid == movingCard.uid)
 │   │   │   │                  not for the pushed cards
 │   │   │   │   **Fix**: Added onCardMoved?.Invoke(cardToPush, cardToPush.slot) 
 │   │   │   │            inside the push loop (GameLogic.cs)
+│   │   │   ├── Medium Card Position (2026-02-10 22:36):
+│   │   │   │   **Requirement**: Medium card (2 slots) center position at center of 2 slots
+│   │   │   │   **Implementation**: BoardCard.CalculateCardPosition()
+│   │   │   │   ```csharp
+│   │   │   │   // Calculate center between first and last occupied slot
+│   │   │   │   int cardSize = GetCardSize(card); // 1/2/3
+│   │   │   │   int lastSlotX = slot.x + (cardSize - 1);
+│   │   │   │   Vector3 centerPos = (firstSlotPos + lastSlotPos) / 2f;
+│   │   │   │   ```
+│   │   │   │   **Files**: BoardCard.cs - OnMove(), CalculateCardPosition(), GetCardSize()
 │   │   │   └── Impact: Slot.cs equality operators, Network serialization
 │   │   │
 │   │   ├── Card Play (出牌)
