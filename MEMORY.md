@@ -116,12 +116,18 @@ npx clawhub@latest list
   - 网络通信模式（权威服务器模型，事件广播机制）
   - Card.cs优化（字典缓存、脏标记、静态空列表）
   - 常见陷阱和最佳实践
+  - **需求路径树** (Requirement Path Tree) - 快速定位修改范围
+    - 卡牌机制 → GameLogic.cs, BoardCard.cs, CardData.cs
+    - 槽位系统 → Slot.cs, BoardSlot.cs, GameLogic.cs
+    - 网络层 → NetworkMsg.cs, GameClient.cs, GameServer.cs
+    - UI层 → BoardCard.cs, HandCard.cs, GameUI.cs
+    - **使用方式**: 给定需求 → 查树 → 定位文件/函数 → 检查影响范围 → 执行修改
   
   **调用规则**: 任何XiuXianCards相关需求，**必须先调用此skill**
   
   **维护规则**: 阶段性汇总改动，持续更新skill内容
   
-  **最新更新**: 2026-02-10 推挤算法最终修复版
+  **最新更新**: 2026-02-10 添加需求路径树，支持快速需求定位
 
 ### Skill开发工具（2026-02-10创建）
 - **skill-creator** (自定义v1.0) - Skill创建和格式化指南

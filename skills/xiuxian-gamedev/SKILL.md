@@ -595,6 +595,183 @@ if (cardAtSlot.uid == movingCard.uid)
 - **Networking**: Unity Netcode for GameObjects
 - **AI**: Minimax with Alpha-Beta pruning
 
+## Requirement Path Tree (需求路径树)
+
+> **Purpose**: Given a requirement (需求A), quickly locate files and functions to modify.  
+> **Rule**: When modifying functions, ensure backward compatibility for all call sites.
+
+### Tree Structure
+
+```
+需求A
+├── Feature Type
+│   ├── Card Mechanics (卡牌机制)
+│   │   ├── Push System (推挤系统)
+│   │   │   ├── Files: GameLogic.cs, GameClient.cs, GameServer.cs
+│   │   │   ├── Functions: MoveCard(), TryGetPushSlots()
+│   │   │   └── Impact: Slot.cs equality operators, Network serialization
+│   │   │
+│   │   ├── Card Play (出牌)
+│   │   │   ├── Files: GameLogic.cs, BoardCard.cs
+│   │   │   ├── Functions: CanPlayCard(), PlayCard()
+│   │   │   └── Impact: Cost validation, Slot validation
+│   │   │
+│   │   ├── Attack System (攻击系统)
+│   │   │   ├── Files: GameLogic.cs, BoardCard.cs
+│   │   │   ├── Functions: CanAttackTarget(), AttackCard()
+│   │   │   └── Impact: Range check, Damage calculation
+│   │   │
+│   │   └── Ability System (技能系统)
+│   │       ├── Files: AbilityData.cs, Card.cs, GameLogic.cs
+│   │       ├── Functions: TriggerAbility(), CanCastAbility()
+│   │       └── Impact: Effect resolution, Target validation
+│   │
+│   ├── Slot System (槽位系统)
+│   │   ├── Files: Slot.cs, BoardSlot.cs
+│   │   ├── Functions: 
+│   │   │   - Slot.Get(), Slot.GetAll()
+│   │   │   - BoardSlot.GetSlot(), GetLeftSlot(), GetRightSlot()
+│   │   ├── Impact:
+│   │   │   - All Slot constructors in GameLogic.cs
+│   │   │   - Network serialization in Slot.cs
+│   │   │   - Equality operators (== and !=)
+│   │   └── Backward Compatibility:
+│   │       - Always use named parameters or full parameter list
+│   │       - Update ALL call sites: Search "new Slot("
+│   │
+│   └── Card Data (卡牌数据)
+│       ├── Files: CardData.cs, Card.cs
+│       ├── Functions: 
+│       │   - CardData.Get()
+│       │   - Card.Get()
+│       │   - Card.Create()
+│       ├── Impact: 
+│       │   - All card instantiation
+│       │   - Serialization
+│       └── Backward Compatibility:
+│           - Static dictionary caching pattern
+│
+├── Network Layer (网络层)
+│   ├── Message Definitions (消息定义)
+│   │   ├── Files: NetworkMsg.cs
+│   │   ├── Functions: Serialize(), Deserialize()
+│   │   └── Impact: 
+│   │       - ALL message handlers in GameClient.cs, GameServer.cs
+│   │       - Protocol compatibility (version matching)
+│   │
+│   ├── Client-Server Communication (通信)
+│   │   ├── Files: GameClient.cs, GameServer.cs
+│   │   ├── Functions:
+│   │   │   - SendToServer(), SendToAll()
+│   │   │   - RegisterRefresh(), OnRefreshXxx()
+│   │   └── Impact: 
+│   │       - Event subscription/unsubscription
+│   │       - Network delivery type selection
+│   │
+│   └── State Synchronization (状态同步)
+│       ├── Files: GameLogic.cs
+│       ├── Functions: RefreshData(), onRefresh event
+│       └── Impact: 
+│           - All UI update subscriptions
+│           - Board card position updates
+│
+└── UI Layer (界面层)
+    ├── Board Visualization (棋盘显示)
+    │   ├── Files: BoardCard.cs, BoardSlot.cs
+    │   ├── Functions: 
+    │   │   - OnMove(), OnSummon()
+    │   │   - UpdatePosition(), UpdateState()
+    │   └── Impact: 
+    │       - Transform updates
+    │       - Animation triggers
+    │
+    ├── Hand Cards (手牌)
+    │   ├── Files: HandCard.cs
+    │   ├── Functions: 
+    │   │   - StartDrag(), EndDrag()
+    │   │   - UpdatePosition()
+    │   └── Impact: 
+    │       - Drag state management
+    │       - Mouse event handling
+    │
+    └── Game UI (游戏UI)
+        ├── Files: GameUI.cs, UIPanel.cs
+        ├── Functions: 
+        │   - ShowPanel(), HidePanel()
+        │   - RefreshUI()
+        └── Impact: 
+            - Panel state transitions
+            - Event listener cleanup
+```
+
+### Quick Reference by Requirement
+
+#### If modifying `Slot` struct
+```
+1. Update Slot.cs:
+   - Constructor(s)
+   - NetworkSerialize()
+   - Equality operators (== and !=)
+   - Equals() and GetHashCode()
+
+2. Search and update ALL "new Slot(" in:
+   ✓ GameLogic.cs (4 locations)
+   ✓ BoardSlot.cs (3 locations)
+   ✓ BoardSlotGroup.cs (1 location)
+   ✓ BoardSlotPlayer.cs (1 location)
+   ✓ AILogic.cs (1 location)
+
+3. Test impact on:
+   ✓ GetSlotCard() in Game.cs
+   ✓ All Slot equality comparisons
+```
+
+#### If adding new Card Mechanic
+```
+1. Define data in CardData.cs
+2. Implement logic in GameLogic.cs
+3. Add validation in CanXxx() functions
+4. Update GameClient.cs for UI feedback
+5. Add to GameServer.cs for server validation
+6. Test network sync with RefreshData()
+```
+
+#### If modifying Network Messages
+```
+1. Update Msg definition in NetworkMsg.cs
+2. Add handler in GameClient.cs (if server→client)
+3. Add handler in GameServer.cs (if client→server)
+4. Register handler in constructor
+5. Test with both client and server builds
+```
+
+### Impact Analysis Template
+
+When modifying a function, check:
+
+1. **Direct Callers**: Who calls this function?
+   ```powershell
+   # Search in PowerShell
+   Select-String -Path "E:\XiuXianCards\XiuXianCards\Assets" -Pattern "FunctionName\(" -Include *.cs
+   ```
+
+2. **Event Subscribers**: Who subscribes to this event?
+   ```csharp
+   // Search for += and -=
+   gameplay.onRefresh += Handler;  // Subscribe
+   gameplay.onRefresh -= Handler;  // Unsubscribe
+   ```
+
+3. **Virtual Overrides**: Who overrides this?
+   ```csharp
+   // Search for override keyword
+   public override void FunctionName()
+   ```
+
+4. **Network Impact**: Does this affect network sync?
+   - Check if function triggers RefreshData() or events
+   - Verify serialized data consistency
+
 ## Changelog
 
 ### v1.0 (2026-02-10)
@@ -602,3 +779,4 @@ if (cardAtSlot.uid == movingCard.uid)
 - Card push system implementation
 - Codebase analysis and optimization notes
 - Network architecture documentation
+- Requirement path tree for quick feature lookup
