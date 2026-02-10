@@ -159,6 +159,14 @@ npx clawhub@latest list
 - 实现：BoardCard.CalculateCardPosition() 计算所占据槽位的中心点
 - 支持 Small(1格)/Medium(2格)/Big(3格) 三种尺寸
 
+**依赖树最新更新** (2026-02-10 22:48):
+- 添加 **Multi-Slot Card System** 重大架构变更
+- Card.slot → Card.slots[] 数组形式
+- 中型卡：根据鼠标落点中轴线决定占据哪两个slot
+- 大型卡：鼠标落点最近的slot为中心，包含左右两侧
+- 边界检查：大型卡在边界时不合法
+- 网络兼容性：保持 slot 字段用于序列化
+
 ### Skill开发工具（2026-02-10创建）
 - **skill-creator** (自定义v1.0) - Skill创建和格式化指南
   - SKILL.md标准格式规范

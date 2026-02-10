@@ -894,6 +894,15 @@ When modifying a function, check:
 
 ## Changelog
 
+### v1.1 (2026-02-10 22:48)
+- **MAJOR**: Card.slot → Card.slots[] array refactoring
+  - Support multi-slot cards (Small=1, Medium=2, Big=3)
+  - Medium card: mouse-axis based slot selection
+  - Big card: center slot + neighbors
+  - Boundary validation for all card sizes
+  - Network compatibility maintained (slot field preserved)
+  - Files modified: Card.cs, Game.cs, GameLogic.cs, BoardCard.cs
+
 ### v1.0 (2026-02-10)
 - Initial skill creation
 - Card push system implementation
