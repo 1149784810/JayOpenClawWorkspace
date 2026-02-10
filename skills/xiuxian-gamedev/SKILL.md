@@ -127,12 +127,23 @@ public enum CardSize
 
 **简化说明**: Slot 结构已简化为只包含 x 坐标，y 和 p 字段已删除。后续玩家区分逻辑将在其他地方处理。
 
+**更新（2026-02-10）**: 添加 `SlotType type` 字段，用于区分不同区域（场景/背包/玩家等）。相等判断同时检查 x 和 type。
+
 **Key Methods**:
 ```csharp
 public static int x_min = 1;
 public static int x_max = 10;
 
-public bool IsValid() => x >= x_min && x <= x_max && y >= y_min && y <= y_max;
+// 构造函数支持 slotType
+public Slot(int x, SlotType type = SlotType.CardStorage)
+
+// 相等判断同时判断 x 和 type
+public static bool operator ==(Slot slot1, Slot slot2)
+{
+    return slot1.x == slot2.x && slot1.type == slot2.type;
+}
+
+public bool IsValid() => x >= x_min && x <= x_max;
 public bool IsInRangeX(Slot slot, int range) => Mathf.Abs(x - slot.x) <= range;
 ```
 
