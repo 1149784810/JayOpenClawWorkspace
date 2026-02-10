@@ -681,13 +681,22 @@ if (cardAtSlot.uid == movingCard.uid)
 │   │   ├── Functions: 
 │   │   │   - Slot.Get(), Slot.GetAll()
 │   │   │   - BoardSlot.GetSlot(), GetLeftSlot(), GetRightSlot()
+│   │   ├── Multi-Slot Impact [2026-02-10]:
+│   │   │   - Cards can occupy multiple slots (1-3 based on CardSize)
+│   │   │   - Slot comparison: Use Card.OccupiesSlot() instead of slot ==
+│   │   │   - Slot retrieval: Use Card.GetMainSlot() instead of card.slot
+│   │   │   - Medium cards: Mouse-axis determines which 2 slots
+│   │   │   - Big cards: Center slot + left/right neighbors
+│   │   │   - Boundary validation required for all multi-slot cards
 │   │   ├── Impact:
 │   │   │   - All Slot constructors in GameLogic.cs
 │   │   │   - Network serialization in Slot.cs
 │   │   │   - Equality operators (== and !=)
+│   │   │   - Card.OccupiesSlot() for slot occupancy checks
 │   │   └── Backward Compatibility:
 │   │       - Always use named parameters or full parameter list
 │   │       - Update ALL call sites: Search "new Slot("
+│   │       - Use Card.GetMainSlot() instead of direct slot access
 │   │
 │   └── Card Data (卡牌数据)
 │       ├── Files: CardData.cs, Card.cs
@@ -695,6 +704,68 @@ if (cardAtSlot.uid == movingCard.uid)
 │       │   - CardData.Get()
 │       │   - Card.Get()
 │       │   - Card.Create()
+│       ├── Multi-Slot Card System (多槽位卡牌系统) [2026-02-10重大更新]:
+│       │   **Architecture Change**: Card.slot → Card.slots[] List<Slot>
+│       │   
+│       │   **Core Concept**: Cards occupy 1-3 slots based on CardSize (Small=1, Medium=2, Big=3)
+│       │   
+│       │   **New Methods in Card.cs**:
+│       │   ```csharp
+│       │   public Slot GetMainSlot()           // Returns slots[0] or Slot.None
+│       │   public bool OccupiesSlot(Slot s)    // Check if card occupies specific slot
+│       │   public void SetSlots(List<Slot> s)  // Set all occupied slots + update legacy slot field
+│       │   public int GetCardSize()            // Returns 1/2/3 based on CardData.size
+│       │   ```
+│       │   
+│       │   **Access Pattern Rules** (MANDATORY):
+│       │   - ❌ NEVER use: `if (card.slot == targetSlot)`
+│       │   - ✅ ALWAYS use: `if (card.GetMainSlot() == targetSlot)`
+│       │   - ❌ NEVER use: `if (card.slot == slot)` for occupancy check
+│       │   - ✅ ALWAYS use: `if (card.OccupiesSlot(slot))`
+│       │   
+│       │   **Files to Update When Modifying Card Slot**:
+│       │   - Card.cs - Add slots field, GetMainSlot(), OccupiesSlot(), SetSlots(), GetCardSize()
+│       │   - Game.cs - GetSlotCard() uses OccupiesSlot() instead of slot comparison
+│       │   - Player.cs - GetSlotCard() uses OccupiesSlot()
+│       │   - GameLogic.cs - CalculateTargetSlots(), PlaceCardAtSlots(), TryPushCards()
+│       │   - BoardCard.cs - CalculateMediumCardTargetSlot() for mouse-axis detection
+│       │   - AILogic.cs - Use GetMainSlot() for equipment targeting
+│       │   - ConditionSelf.cs - Use GetMainSlot() for slot comparison
+│       │   
+│       │   **Medium Card Logic** (Mouse Axis Detection):
+│       │   ```csharp
+│       │   // Calculate which pair of slots based on mouse position relative to mid-axes
+│       │   // Left of left-mid-axis: would need x-2 and x-1 (check boundary)
+│       │   // Between mid-axes: use left pair (x-1 and x)
+│       │   // Right of right-mid-axis: use right pair (x and x+1)
+│       │   // At boundary (x=1 or x=max): INVALID, return to original position
+│       │   ```
+│       │   
+│       │   **Big Card Logic** (Center + Neighbors):
+│       │   - Occupies: center slot + left neighbor + right neighbor
+│       │   - Boundary check: requires x-1 >= min AND x+1 <= max
+│       │   - At boundary: INVALID, cannot place
+│       │   
+│       │   **Network Compatibility**:
+│       │   - Keep `slot` field for serialization (SetSlots() auto-updates it)
+│       │   - slot = slots[0] (main slot)
+│       │   - All network messages continue using slot field
+│       │   
+│       │   **Pre-Flight Checklist** (BEFORE any slot-related change):
+│       │   ```powershell
+│       │   # Search ALL references first
+│       │   Select-String -Path "Assets" -Pattern "card\.slot\b" -Include *.cs
+│       │   ```
+│       │   - Update ALL files in search results
+│       │   - Use GetMainSlot() for slot comparison
+│       │   - Use OccupiesSlot() for occupancy check
+│       │   
+│       │   **Common Pitfalls**:
+│       │   1. Forgetting to update Player.GetSlotCard() → OccupiesSlot()
+│       │   2. Forgetting to update AILogic equipment targeting → GetMainSlot()
+│       │   3. Direct slot comparison in condition checks → GetMainSlot()
+│       │   4. Encoding issues when editing files (use English comments only)
+│       │   
 │       ├── Card Slot Initialization (card.slot 初始化位置):
 │       │   **Default State**: Card.Create() → slot = Slot.None (x=0, type=CardStorage)
 │       │   
@@ -817,6 +888,67 @@ if (cardAtSlot.uid == movingCard.uid)
 4. Update GameClient.cs for UI feedback
 5. Add to GameServer.cs for server validation
 6. Test network sync with RefreshData()
+```
+
+#### If implementing Multi-Slot Card System (多槽位卡牌系统)
+```
+⚠️ MAJOR ARCHITECTURE CHANGE - Follow strictly!
+
+PRE-FLIGHT (Before starting):
+  Search ALL references: Select-String -Path "Assets" -Pattern "card\.slot\b" -Include *.cs
+
+1. Card.cs - Core Changes:
+   ✓ Add field: public List<Slot> slots = new List<Slot>();
+   ✓ Add method: public Slot GetMainSlot() → slots[0] or Slot.None
+   ✓ Add method: public bool OccupiesSlot(Slot s) → slots.Contains(s)
+   ✓ Add method: public void SetSlots(List<Slot> s) → updates slots + legacy slot field
+   ✓ Add method: public int GetCardSize() → 1/2/3 based on CardData.size
+
+2. Game.cs - Slot Lookup:
+   ✓ Change: GetSlotCard() uses card.OccupiesSlot(slot) instead of card.slot == slot
+
+3. Player.cs - Slot Lookup:
+   ✓ Change: GetSlotCard() uses card.OccupiesSlot(slot)
+
+4. GameLogic.cs - Complete Rewrite:
+   ✓ Replace MoveCard() with multi-slot aware version
+   ✓ Add CalculateTargetSlots(Slot target, int size, SlotType) → List<Slot>
+   ✓ Add PlaceCardAtSlots(Card, List<Slot>, Player)
+   ✓ Add TryPushCards() with multi-slot push logic
+   ✓ Update PlayCard() to use CalculateTargetSlots()
+
+5. BoardCard.cs - Medium Card Mouse Detection:
+   ✓ Add CalculateMediumCardTargetSlot(BoardSlot, Vector3) → Slot
+     - Uses mid-axis detection for slot pair selection
+     - Returns Slot.None if at boundary (invalid)
+   ✓ Add GetSlotSpacing() for mid-axis calculation
+   ✓ Update MoveCardToCorrectSlot() for medium card special handling
+   ✓ Update OnMove() to use CalculateCardPositionFromSlots()
+
+6. AILogic.cs - Equipment Targeting:
+   ✓ Change: tcard.slot → tcard.GetMainSlot()
+
+7. ConditionSelf.cs - Slot Comparison:
+   ✓ Change: caster.slot → caster.GetMainSlot()
+
+8. Encoding Safety:
+   ✓ Use English comments ONLY to avoid garbled text
+   ✓ Verify file readability after each edit
+
+ACCESS PATTERN RULES (MANDATORY):
+  ❌ NEVER: if (card.slot == targetSlot)
+  ✅ ALWAYS: if (card.GetMainSlot() == targetSlot)
+  ❌ NEVER: if (card.slot == slot)  // for occupancy
+  ✅ ALWAYS: if (card.OccupiesSlot(slot))
+
+NETWORK COMPATIBILITY:
+  ✓ Keep legacy 'slot' field for serialization
+  ✓ SetSlots() auto-updates: slot = slots[0]
+  ✓ All network messages continue using slot field
+
+BOUNDARY HANDLING:
+  Medium card at x=1 or x=max → INVALID (return to original position)
+  Big card needs x-1 >= min AND x+1 <= max → Check before placement
 ```
 
 #### If adding CD System (CD冷却系统)
