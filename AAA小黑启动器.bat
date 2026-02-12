@@ -1,0 +1,2 @@
+openclaw gateway start
+openclaw dashboard
