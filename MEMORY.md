@@ -20,6 +20,7 @@
 |------|--------|------|------|
 | **修仙大巴扎 (XiuXianCards)** | Unity (C#) | 卡牌对战/联机 | `E:\XiuXianCards` |
 | **修仙挂机 (XiuXianIdle)** | HTML/JS | 放置/单机 | `E:\OpenClaw\TempWork` |
+| **刀剑神域DND (SAO-DND-RPG)** | React+TypeScript | RPG/回合制 | `F:\刀剑神域WEB游戏` |
 
 ---
 
@@ -346,6 +347,31 @@ npx clawhub@latest list
     - Issue 0: uvx未找到 → 动态路径检测 + Unity Local Setup安装
     - Issue 4: 找不到Unity实例 → 需在Unity中点击 "Start Session" 建立连接
   - 工作流模式与最佳实践
+
+---
+
+#### sao-dnd-rpg (2026-02-12创建)
+**路径**: `skills/sao-dnd-rpg/SKILL.md`  
+**项目**: 刀剑神域DND冒险 - React RPG游戏  
+**技术栈**: React 19 + TypeScript + Vite + Tailwind CSS + shadcn/ui
+
+**核心系统**:
+- **9种职业系统**: 剑士、法师、盗贼、弓箭手、圣骑士、狂战士、刺客、牧师、锻造师
+- **100层爬塔**: 逐层挑战，每层配置不同敌人
+- **回合制战斗**: 玩家+队友自动战斗，支持技能/物品/逃跑
+- **伙伴/好感度系统**: 8位原作角色(亚丝娜、桐人等)，好感度300满值可结婚
+- **锻造系统**: 材料收集+配方锻造+成功率机制
+- **存档系统**: 8槽位+自动存档，localStorage持久化
+
+**架构特点**:
+- Context + Reducer 状态管理
+- 数据驱动设计 (classes, enemies, equipment, friends 分离)
+- 完整的 TypeScript 类型定义
+- 自动存档机制 (玩家数据变更时自动保存)
+
+**调用规则**: 任何刀剑神域RPG相关需求，**必须先调用此skill**
+
+**项目路径**: `F:\刀剑神域WEB游戏\app`
 
 ---
 
