@@ -206,6 +206,76 @@ public void ReceiveMove(ClientData client, SerializedData sdata)
 }
 ```
 
+### Push System Rules (v2.0 - Final)
+
+**Core Principle**: Push distance equals overlap count, direction determined by slot position within card pair.
+
+#### Target Slot Determination
+
+**Medium Card (2 slots)**: Mouse at slot X
+- If X can be **left slot** (X+1 exists) → Target **[X, X+1]** → **Push Left**
+- If X can be **right slot** (X-1 exists) → Target **[X-1, X]** → **Push Right**
+
+**Logic**: 
+- Target [X, X+1]: X is left slot, push left (make room on right)
+- Target [X-1, X]: X is right slot, push right (make room on left)
+
+**Examples**:
+- A[2,3] drags to slot 4 → Target [3,4] (4 is right slot) → Push Right
+- A[3,4] drags to slot 2 → Target [2,3] (2 is left slot) → Push Left
+
+| Card Type | Mouse at Slot X | Target Slots | Push Direction |
+|-----------|----------------|--------------|----------------|
+| Small (1) | Slot X | [X] | Based on occupied side |
+| Medium (2) | X as left slot | [X, X+1] | Push Left |
+| Medium (2) | X as right slot | [X-1, X] | Push Right |
+| Big (3) | Special handling | See below | See below |
+
+#### Big Card Special Rules
+
+| Mouse Position | Action |
+|---------------|--------|
+| Left third | Target left-biased, push left |
+| Middle, left bias | Push left |
+| Middle, right bias | Push right |
+| Right third | Target right-biased, push right |
+| Big vs Big | Swap positions entirely |
+
+#### Push Distance Calculation
+
+```
+Push Distance = Overlapping slot count between target and existing card
+```
+
+**Example**: Medium [3,4] pushes Big [5,6,7]
+- Target [5,6] overlaps at [5,6] = 2 slots
+- Push distance = 2
+- Big moves from [5,6,7] to [7,8,9]
+
+#### Large vs Large (Special Case)
+
+When dragging Large card onto another Large card: **Swap positions entirely**
+
+```
+Before: A[2,3,4], B[5,6,7]
+After:  A[5,6,7], B[2,3,4]
+```
+
+#### Chain Push
+
+When card A pushes B, and B's new position overlaps with C:
+- B pushes C with calculated distance
+- Continue until no overlap or boundary reached
+
+**Example**: A[2,3] → B[4,5] → C[6,7], drag A to slot 4
+1. A targets [3,4], overlaps B at [4] = 1 slot
+2. B pushes right 1 slot to [5,6]
+3. B's new [5,6] overlaps C at [6] = 1 slot
+4. C pushes right 1 slot to [7,8]
+5. Final: A[3,4], B[5,6], C[7,8]
+
+---
+
 4. **GameLogic.cs** - Authoritative logic
 ```csharp
 public virtual void MoveCard(Card card, Slot slot, 
@@ -229,6 +299,171 @@ public virtual void MoveCard(Card card, Slot slot,
     onCardMoved?.Invoke(card, slot);
 }
 ```
+
+### Push System v3.0 - CardPlacementSystem (2026-02-11)
+
+**重大更新**: 重写卡牌放置和推挤系统，实现更精确的规则
+
+#### Core Rules
+
+**1. 寻找最近的m个slot**
+```
+鼠标落点pos → 寻找距离最近的m个连续slot（m=卡牌尺寸）
+- 小型卡(1格): 直接占据最近的1个slot
+- 中型卡(2格): 优先[pos, pos+1]，若越界则用[pos-1, pos]
+- 大型卡(3格): 占据[pos-1, pos, pos+1]
+```
+
+**2. 卡牌位置计算**
+```
+卡牌放置位置 = 所占据slots的中心位置
+centerX = (minX + maxX) / 2
+```
+
+**3. 推挤方向判断（更新版）**
+
+**规则A：同尺寸卡牌互推（小型推小型，中型推中型，大型推大型）**
+```
+根据鼠标落点相对于目标slot的位置判断：
+- 鼠标在目标slot左侧 → 向右推
+- 鼠标在目标slot右侧 → 向左推
+
+实现：
+if (movingSize == targetSize)
+{
+    mouseOffsetX < 0 (左侧) → Push Right
+    mouseOffsetX >= 0 (右侧) → Push Left
+}
+```
+
+**规则B：小型卡(1格) 推 大型卡(3格) - 特殊情况**
+```
+如果小型卡的目标slot是大型卡的中间slot：
+→ 不发生推挤，小型卡回到原位置
+
+实现：
+if (movingCard.size == 1 && targetCard.size == 3)
+{
+    if (overlapSlot == targetCard.centerSlot)
+        return PushDirection.None; // 不能推挤
+}
+```
+
+**规则C：其他情况（中型卡推任何卡，大型卡推任何卡，小型卡推中型卡）**
+```
+根据重叠slot相对于【被推挤卡牌】中心位置：
+- 重叠slot在被推挤卡中心左侧 → 向右推（给左侧让出空间）
+- 重叠slot在被推挤卡中心右侧 → 向左推（给右侧让出空间）
+
+示例1：小型卡[3] 推 中型卡[4,5]
+- 小型卡落在 slot 4（中型卡左侧）
+- 重叠slot [4] 在中型卡中心(4)的左侧
+- 中型卡向右推 → 新位置 [5,6]
+
+示例2：中型卡[4,5] 推 大型卡[4,5,6]
+- 中型卡目标 [4,5]，重叠大型卡 [4,5]
+- slot 4 在大型卡中心(5)的左侧
+- slot 5 在大型卡中心(5)的位置（中型卡左半部分）
+- 重叠主要在左半部分 → 大型卡向右推 → 新位置 [6,7,8] 或 [5,6,7]
+```
+
+**4. 推挤距离**
+```
+pushDistance = 重叠的slot数量
+```
+
+**5. 连锁推挤**
+```csharp
+// 使用队列处理连锁反应
+Queue<(Card card, List<Slot> newSlots)> processQueue
+
+// 当一张卡牌被推动时，检查是否与其他卡牌冲突
+// 如有冲突，继续推动，直到所有卡牌都有有效位置
+```
+
+**6. 模拟机制**
+```csharp
+// STEP 1: 模拟推挤过程
+PushResult simulation = SimulatePush(movingCard, targetSlots, centerSlot);
+
+// STEP 2: 如果成功，执行真正的移动
+if (simulation.success)
+{
+    ExecutePushOperations(simulation.operations);
+    PlaceCard(movingCard, targetSlots);
+}
+// STEP 3: 如果失败，取消所有移动
+else
+{
+    return false; // 保持原位
+}
+```
+
+#### Implementation
+
+**File**: `Assets/TcgEngine/Scripts/GameLogic/CardPlacementSystem.cs`
+
+```csharp
+public class CardPlacementSystem
+{
+    // Main entry point
+    public bool TryMoveCard(Card movingCard, Slot targetSlot, 
+        float mouseOffsetX = 0f, SlotType slotType = SlotType.CardStorage)
+    {
+        // 1. Calculate nearest slots
+        List<Slot> targetSlots = CalculateNearestSlots(targetSlot, cardSize, slotType);
+        
+        // 2. Simulate push
+        PushResult simulation = SimulatePush(movingCard, targetSlots, centerSlot);
+        
+        // 3. Execute if successful
+        if (simulation.success)
+        {
+            ExecutePushOperations(simulation.operations);
+            PlaceCard(movingCard, targetSlots);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // Determine push direction based on overlap slot positions
+    private PushDirection DeterminePushDirection(List<Slot> overlapSlots, Slot centerSlot)
+    {
+        int leftCount = overlapSlots.Count(s => s.x < centerSlot.x);
+        int rightCount = overlapSlots.Count(s => s.x > centerSlot.x);
+        
+        return leftCount >= rightCount ? PushDirection.Left : PushDirection.Right;
+    }
+}
+```
+
+#### Key Improvements over v2.0
+
+| Feature | v2.0 | v3.0 |
+|---------|------|------|
+| Push Direction | Based on mouseOffsetX | Based on overlap slot positions |
+| Simulation | Partial | Complete simulation before execution |
+| Card Position | Slot boundary | Center of occupied slots |
+| Medium Card | Fixed right expansion | Based on mouse position |
+| Failure Handling | Partial push | All-or-nothing (atomic) |
+
+#### Usage
+
+```csharp
+// In GameLogic.cs
+private CardPlacementSystem placement_system;
+
+public virtual void MoveCard(Card card, Slot targetSlot, 
+    float mouseOffsetX = 0f, SlotType slotType = SlotType.CardStorage)
+{
+    // v3.0: Use new placement system
+    bool success = placement_system.TryMoveCard(card, targetSlot, 
+        mouseOffsetX, slotType);
+}
+```
+
+---
 
 5. **BoardCard.cs** - Client handling
 ```csharp
@@ -1033,6 +1268,16 @@ When modifying a function, check:
    - Verify serialized data consistency
 
 ## Changelog
+
+### v2.0 (2026-02-11) - Push System Final
+- **FIXED**: Push algorithm completely rewritten
+  - Push distance now equals overlapping slot count (not fixed distance)
+  - Supports chain pushing (A pushes B pushes C)
+  - Fixed right-direction push bug
+  - Fixed Medium card target slot calculation
+  - BoardCard.cs: Mouse position determines target [x-1,x] or [x,x+1]
+  - GameLogic.cs: Queue-based chain push processing
+  - Clone method fixed to copy slots list
 
 ### v1.1 (2026-02-10 22:48)
 - **MAJOR**: Card.slot → Card.slots[] array refactoring

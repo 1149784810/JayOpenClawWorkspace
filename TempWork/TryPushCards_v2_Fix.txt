@@ -1,0 +1,112 @@
+// Fix Script for GameLogic.cs TryPushCards function
+// Replace lines 531-664 with this v2.0 implementation
+
+        /// <summary>
+        /// 尝试推动阻挡的卡牌（v2.0 - 基于重叠槽位数量的精确推动）
+        /// RULE: 推动距离 = 重叠槽位数，支持连锁推动
+        /// </summary>
+        private bool TryPushCards(Card movingCard, List<Slot> targetSlots, List<Card> blockingCards, bool pushLeft, int cardSize)
+        {
+            // v2.0: 使用队列处理连锁推动
+            Queue<Card> cardsToProcess = new Queue<Card>(blockingCards);
+            HashSet<Card> processedCards = new HashSet<Card>();
+            Dictionary<Card, List<Slot>> newPositions = new Dictionary<Card, List<Slot>>();
+            
+            // 已预留的槽位（包括移动卡牌的目标）
+            HashSet<Slot> reservedSlots = new HashSet<Slot>(targetSlots);
+            
+            while (cardsToProcess.Count > 0)
+            {
+                Card cardToPush = cardsToProcess.Dequeue();
+                
+                if (cardToPush == null || cardToPush.uid == movingCard.uid)
+                    continue;
+                if (processedCards.Contains(cardToPush))
+                    continue;
+                
+                processedCards.Add(cardToPush);
+                
+                int pushSize = cardToPush.GetCardSize();
+                
+                // v2.0: 计算与已预留槽位的重叠数量
+                int overlap = CalculateOverlap(cardToPush.slots, reservedSlots.ToList());
+                
+                // 如果没有重叠，不需要推动这张卡
+                if (overlap == 0)
+                    continue;
+                
+                // v2.0: 推动距离 = 重叠槽位数
+                int pushDistance = overlap;
+                
+                // 计算新槽位位置
+                Slot mainSlot = cardToPush.GetMainSlot();
+                int newMainX = pushLeft ? mainSlot.x - pushDistance : mainSlot.x + pushDistance;
+                
+                // 生成新槽位列表
+                List<Slot> newSlots = new List<Slot>();
+                if (pushSize == 1)
+                {
+                    newSlots.Add(new Slot(newMainX, mainSlot.type));
+                }
+                else if (pushSize == 2)
+                {
+                    newSlots.Add(new Slot(newMainX, mainSlot.type));
+                    newSlots.Add(new Slot(newMainX + 1, mainSlot.type));
+                }
+                else if (pushSize == 3)
+                {
+                    newSlots.Add(new Slot(newMainX - 1, mainSlot.type));
+                    newSlots.Add(new Slot(newMainX, mainSlot.type));
+                    newSlots.Add(new Slot(newMainX + 1, mainSlot.type));
+                }
+                
+                // 检查边界
+                int leftmost = newMainX;
+                int rightmost = newMainX;
+                if (pushSize == 2) { leftmost = newMainX; rightmost = newMainX + 1; }
+                else if (pushSize == 3) { leftmost = newMainX - 1; rightmost = newMainX + 1; }
+                
+                if (leftmost < Slot.x_min || rightmost > Slot.x_max)
+                    return false;  // 超出边界
+                
+                // v2.0: 检查新位置是否与未处理的卡牌冲突，需要连锁推动
+                foreach (Player player in game_data.players)
+                {
+                    foreach (Card otherCard in player.cards_board)
+                    {
+                        if (otherCard.uid == movingCard.uid || processedCards.Contains(otherCard))
+                            continue;
+                        
+                        foreach (Slot newSlot in newSlots)
+                        {
+                            if (otherCard.OccupiesSlot(newSlot))
+                            {
+                                // 冲突！这张卡也需要被推动
+                                if (!cardsToProcess.Contains(otherCard))
+                                    cardsToProcess.Enqueue(otherCard);
+                            }
+                        }
+                    }
+                }
+                
+                // 预留这些槽位
+                foreach (Slot slot in newSlots)
+                    reservedSlots.Add(slot);
+                
+                newPositions[cardToPush] = newSlots;
+            }
+            
+            // 执行推动
+            foreach (var kvp in newPositions)
+            {
+                Card cardToPush = kvp.Key;
+                List<Slot> newSlots = kvp.Value;
+                
+                cardToPush.SetSlots(newSlots);
+                
+                if (newSlots.Count > 0)
+                    onCardMoved?.Invoke(cardToPush, newSlots[0]);
+            }
+            
+            return true;
+        }

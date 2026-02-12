@@ -23,6 +23,61 @@
 
 ---
 
+### DouDiZhu - 欢乐斗地主 (2026-02-11)
+
+**项目路径**: `E:\XiuXianCards\XiuXianCards\Assets\TestAI\`
+
+**项目类型**: Unity 单机卡牌游戏
+
+**核心功能**:
+- 完整斗地主规则实现
+- 支持玩家 vs 两个AI对战
+- 13种牌型识别（单张到王炸）
+- 叫地主、出牌流程
+- 胜负判定
+
+**技术栈**:
+- Unity 6000+
+- C# (DDZ 命名空间)
+- 面向对象设计
+
+**核心脚本**:
+- `Core/Card.cs` - 卡牌定义（花色、点数、牌力值）
+- `Core/CardDeck.cs` - 牌堆管理（54张牌、洗牌、发牌）
+- `Core/GameManager.cs` - 游戏主控制（状态机、流程）
+- `Core/GameRules.cs` - 游戏规则（牌型识别、大小比较）
+- `AI/AIPlayer.cs` - AI算法（自动出牌）
+- `UI/UIManager.cs` - UI管理（界面、按钮事件）
+
+**牌型支持**:
+- 单张、对子、三张
+- 三带一、三带二
+- 顺子（5张起）、连对（3对起）、飞机
+- 炸弹、王炸
+
+**开发文档**:
+- `E:\OpenClaw\TempWork\DouDiZhu_README.md` - 项目说明
+- `E:\OpenClaw\TempWork\DouDiZhu_DevGuide.md` - 开发指南
+- `E:\OpenClaw\TempWork\DouDiZhu_SceneSetup.md` - 场景设置指南
+- `E:\OpenClaw\TempWork\DouDiZhu_QUICKSTART.md` - 快速启动指南（含修复说明）
+
+**启动方式**:
+1. Unity 菜单: `DDZ → Setup Scene` (自动配置场景)
+2. 点击 Play → 点击"开始游戏"按钮
+
+**关键修复** (2026-02-11):
+- 添加 `GameLauncher.cs` - 统一场景初始化，自动创建相机、玩家、UI
+- 修复 `GameManager` - 正确查找场景中的玩家物体
+- 更新 `SceneSetupEditor` - 简化菜单操作
+- 添加 `DDZ → Reset Scene` 菜单 - 可重置场景重新配置
+- **修复按钮点击无响应** - 添加 `StartGameButton.cs`，改进事件绑定和错误检查
+- **修复游戏启动问题** - 在 Awake 中初始化系统，添加详细调试日志
+- **修复卡牌不显示** - 修改 `GameTable.DisplayPlayerHand()` 实际创建卡牌预制体并设置外观
+- **修复叫地主无UI** - 添加 `CreateCallLandlordPanel()` 和 `CreatePlayButtonsPanel()` 方法
+- **修复AI牌数显示** - 添加 `UpdateCardCount()` 方法显示剩余牌数
+
+---
+
 ### XiuXianIdle - 修仙挂机游戏 (2026-02-11)
 
 **别名**: 问道长生
@@ -247,13 +302,23 @@ npx clawhub@latest list
 - 实现：BoardCard.CalculateCardPosition() 计算所占据槽位的中心点
 - 支持 Small(1格)/Medium(2格)/Big(3格) 三种尺寸
 
-**依赖树最新更新** (2026-02-10 22:48):
-- 添加 **Multi-Slot Card System** 重大架构变更
-- Card.slot → Card.slots[] 数组形式
-- 中型卡：根据鼠标落点中轴线决定占据哪两个slot
-- 大型卡：鼠标落点最近的slot为中心，包含左右两侧
-- 边界检查：大型卡在边界时不合法
-- 网络兼容性：保持 slot 字段用于序列化
+**依赖树最新更新** (2026-02-11 20:15):
+- 添加 **CardPlacementSystem v3.0** - 重写卡牌放置和推挤系统
+  - 实现基于重叠slot位置的智能推挤方向判断（左重叠→左推，右重叠→右推）
+  - 完整模拟推挤过程，确认可行后才执行
+  - 支持连锁推挤（队列实现）
+  - 卡牌位置 = 所占据slots的中心位置
+  - 鼠标落点自动寻找最近的m个slot
+  - 推挤距离 = 重叠slot数量
+  - 最大连锁深度5层
+  - 失败时全部取消，保持数据一致性
+  - **推挤方向判定规则更新（重要修正）**：
+    - **同尺寸卡牌互推**：小型推小型、中型推中型都根据鼠标落点判断方向
+    - 小型卡对大型卡：若落在中间slot则不能推挤，回到原位置
+    - **关键修正**：推挤方向判定参照物是【被推挤卡牌】而不是新放置卡牌
+      - 重叠slot在被推挤卡中心左侧 → 向右推
+      - 重叠slot在被推挤卡中心右侧 → 向左推
+- 文件: `CardPlacementSystem.cs` (新系统), `GameLogic.cs` (集成调用)
 
 **经验教训** (2026-02-10 23:15):
 - **架构变更前必须全局搜索**: 使用 `Select-String` 搜索所有引用点，不只是"主要"文件
@@ -267,6 +332,20 @@ npx clawhub@latest list
   - Front matter要求
   - 常见错误和修复方法
   - 设计最佳实践
+
+### Unity开发工具（2026-02-11创建）
+- **unity-mcp** (v1.0) - Unity MCP Server 部署与API使用指南
+  - MCP Server 启动与连接流程
+  - 常用API操作（GameObject、Component、Scene、Asset）
+  - **关键问题记录**:
+    - Color格式必须使用对象 `{"r":x,"g":y,"b":z,"a":w}` 而非数组
+    - SpriteRenderer.sprite 无法通过API直接设置（Texture2D≠Sprite）
+    - 创建Sprite需要手动在Unity中拖拽或使用编辑器脚本
+  - **故障排查与解决方案**:
+    - Issue -1: MCP插件未安装 → Unity Asset Store下载
+    - Issue 0: uvx未找到 → 动态路径检测 + Unity Local Setup安装
+    - Issue 4: 找不到Unity实例 → 需在Unity中点击 "Start Session" 建立连接
+  - 工作流模式与最佳实践
 
 ---
 
